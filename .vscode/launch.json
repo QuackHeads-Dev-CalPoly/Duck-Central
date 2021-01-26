@@ -16,7 +16,7 @@
         "interface/raspberrypi-swd.cfg",
         "target/rp2040.cfg"
         ],
-      "svdFile": "/Users/krdixson/Desktop/pico/pico-sdk/src/rp2040/hardware_regs/rp2040.svd",
+      "svdFile": "/home/knottber/pico/pico-sdk/src/rp2040/hardware_regs/rp2040.svd",
       "runToMain": true,
     }
   ]

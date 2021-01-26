@@ -31,7 +31,31 @@
 #define PIN_MOSI 19
 
 
+int blink()
+{
+    stdio_init_all();
+    
+    uint LED_PIN = 25;
+    
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    while(1)
+    {
+        gpio_put(LED_PIN, 0);
+        sleep_ms(250);
+        gpio_put(LED_PIN, 1);
+        printf("Hello World, from Pico");
+        printf("Size of: %ld\n", sizeof(size_t));
+        sleep_ms(1000);
+    }
+}
+
 int main() {
+
+    blink();
+
+    /*
     stdio_init_all();
 
     // Set up our UART
@@ -63,6 +87,7 @@ int main() {
     
 
     puts("Hello, world!");
+    */
 
     return 0;
 }
