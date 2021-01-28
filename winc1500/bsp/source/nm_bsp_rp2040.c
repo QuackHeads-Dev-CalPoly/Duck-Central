@@ -43,7 +43,7 @@
 
 static tpfNmBspIsr gpfIsr;
 
-static void chip_isr(void)
+static void chip_isr(uint gpio, uint32_t events)
 {
 	if (gpfIsr) {
 		gpfIsr();

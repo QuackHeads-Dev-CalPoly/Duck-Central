@@ -4,39 +4,68 @@
 #include "hardware/i2c.h"
 #include "hardware/spi.h"
 
-// UART defines
-// By default the stdout UART is `uart0`, so we will use the second one
-#define UART_ID uart1
-#define BAUD_RATE 9600
+#include "bsp/include/nm_bsp.h"
+#include "bsp/include/nm_bsp_rp2040.h"
+#include "driver/include/m2m_wifi.h"
+#include "driver/include/m2m_periph.h"
+#include "driver/include/m2m_ssl.h"
+#include "common/include/nm_common.h"
+#include "driver/source/nmasic.h"
 
-// Use pins 4 and 5 for UART1
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
+#define LED_PIN 25
 
-// I2C defines
-// This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define I2C_PORT i2c0
-#define I2C_SDA 8
-#define I2C_SCL 9
+static void wifi_cb(uint8_t u8MsgType, void *pvMsg)
+{
+    printf("Here in Wifi callback\n");
+    
+}
 
-// SPI Defines
-// We are going to use SPI 0, and allocate it to the following GPIO pins
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define SPI_PORT spi0
-#define PIN_MISO 16
-#define PIN_CS   17
-#define PIN_SCK  18
-#define PIN_MOSI 19
+void init_wifi()
+{
+    tstrWifiInitParam param;
+    nm_bsp_init();
 
+    uint8 led_out = 1;
+    gpio_put(LED_PIN, led_out);
+
+    m2m_memset((uint8*) &param, 0, sizeof(param));
+    param.pfAppWifiCb = wifi_cb;
+
+    sint8 ret = m2m_wifi_init(&param);
+    uint32 chip_id = nmi_get_chipid();
+    printf("Kevin chipID: %d", chip_id);
+    sleep_ms(1000);
+    if( M2M_SUCCESS != ret )
+    {
+        M2M_ERR("Driver Init Failed <%d>\n", ret);
+        while(1)
+        {
+            gpio_put(LED_PIN, led_out);
+            if(!led_out)
+                led_out++;
+            else
+                led_out--;
+            //printf("Driver Init failed | ret: %d\n", ret);
+
+            sleep_ms(1000);
+        }
+    }
+
+    while(1)
+    {
+        while(m2m_wifi_handle_events(NULL) != M2M_SUCCESS) 
+        {
+            printf("Failed to handle events\n");
+        }
+        printf("In while loop\n");
+    }
+
+}
 
 int blink()
 {
     stdio_init_all();
-    
-    uint LED_PIN = 25;
-    
+        
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 
@@ -53,41 +82,14 @@ int blink()
 
 int main() {
 
-    blink();
-
-    /*
     stdio_init_all();
+    sleep_ms(1000*30);
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    // Set up our UART
-    uart_init(UART_ID, BAUD_RATE);
-    // Set the TX and RX pins by using the function select on the GPIO
-    // Set datasheet for more information on function select
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    
+    init_wifi();
 
-    // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
-    
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-
-    // SPI initialisation. This example will use SPI at 1MHz.
-    spi_init(SPI_PORT, 1000*1000);
-    gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
-    gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
-    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
-    
-    // Chip select is active-low, so we'll initialise it to a driven-high state
-    gpio_set_dir(PIN_CS, GPIO_OUT);
-    gpio_put(PIN_CS, 1);
-    
-
-    puts("Hello, world!");
-    */
+    while(1);
 
     return 0;
 }

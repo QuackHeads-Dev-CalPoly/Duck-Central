@@ -45,21 +45,23 @@
 #define HIGH 1
 #define LOW 0
 
+tstrNmBusCapabilities egstrNmBusCapabilities =
+{
+    NM_BUS_MAX_TRX_SZ
+};
+
 static sint8 spi_rw(uint8* pu8Mosi, uint8* pu8Miso, uint16 u16Sz)
 {
     /* TODO: Fix some of this dummy code for the new variation on pico */
     uint8 u8Dummy = 0;
-    uint8 u8SkipMosi = 0, u8SkipMiso = 0;
 
     if (!pu8Mosi)
     {
         pu8Mosi = &u8Dummy;
-        u8SkipMosi = 1;
     }
     else if(!pu8Miso)
     {
         pu8Miso = &u8Dummy;
-        u8SkipMiso = 1;
     }
     else
     {
@@ -86,7 +88,7 @@ sint8 nm_bus_init(void *pvinit)
     
     /* TODO: Default to 8 bits for transfer b.c. that is what Arduino does */
     spi_set_format(WINC1500_SPI_PORT, 8, 
-                    SPI_CPOL_0, SPI_CPHA_1, SPI_MSB_FIRST);
+                    SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
 
     /* Set up MISO, MOSI, and SCK PINs */
     gpio_set_function(WINC1500_SPI_MISO_PIN, GPIO_FUNC_SPI);

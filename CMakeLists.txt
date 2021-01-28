@@ -22,6 +22,25 @@ set( DUCK_WIFI_SRC
         ${PROJECT_SOURCE_DIR}/duck.c
         ${PROJECT_SOURCE_DIR}/winc1500/bsp/source/nm_bsp_rp2040.c
         ${PROJECT_SOURCE_DIR}/winc1500/bus_wrapper/source/nm_bus_wrapper_rp2040.c
+        ${PROJECT_SOURCE_DIR}/winc1500/socket/source/socket.c
+        ${PROJECT_SOURCE_DIR}/winc1500/common/source/nm_common.c
+        ${PROJECT_SOURCE_DIR}/winc1500/spi_flash/source/flexible_flash.c
+        ${PROJECT_SOURCE_DIR}/winc1500/spi_flash/source/spi_flash.c
+        ${PROJECT_SOURCE_DIR}/winc1500/bus_wrapper/source/nm_bus_wrapper_rp2040.c
+        ${PROJECT_SOURCE_DIR}/winc1500/bsp/source/nm_bsp_rp2040.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_hif.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmbus.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_ota.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmdrv.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmuart.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_wifi.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmspi.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmi2c.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_crypto.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_ate_mode.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_periph.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/nmasic.c
+        ${PROJECT_SOURCE_DIR}/winc1500/driver/source/m2m_ssl.c
         )
 
 add_executable(duck ${DUCK_WIFI_SRC})

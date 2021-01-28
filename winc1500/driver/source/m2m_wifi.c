@@ -666,351 +666,351 @@ sint8 m2m_wifi_connect_open(
 	return ret;
 	}
 
-sint8 m2m_wifi_connect_wep(
-	tenuCredStoreOption	enuCredStoreOption,
-	tstrNetworkId		*pstrNetworkId,
-	tstrAuthWep			*pstrAuthWep
-)
-{
-	sint8	ret = M2M_ERR_INVALID_ARG;
+// sint8 m2m_wifi_connect_wep(
+// 	tenuCredStoreOption	enuCredStoreOption,
+// 	tstrNetworkId		*pstrNetworkId,
+// 	tstrAuthWep			*pstrAuthWep
+// )
+// {
+// 	sint8	ret = M2M_ERR_INVALID_ARG;
 
-	if (
-			(pstrAuthWep != NULL) && (pstrAuthWep->pu8WepKey != NULL)
-		&&	(pstrAuthWep->u8KeyIndx > 0) && (pstrAuthWep->u8KeyIndx <= WEP_KEY_MAX_INDEX)
-		&&	((pstrAuthWep->u8KeySz == WEP_104_KEY_STRING_SIZE) || (pstrAuthWep->u8KeySz == WEP_40_KEY_STRING_SIZE))
-	)
-	{
-		tstrM2mWifiConnHdr	strConnHdr;
+// 	if (
+// 			(pstrAuthWep != NULL) && (pstrAuthWep->pu8WepKey != NULL)
+// 		&&	(pstrAuthWep->u8KeyIndx > 0) && (pstrAuthWep->u8KeyIndx <= WEP_KEY_MAX_INDEX)
+// 		&&	((pstrAuthWep->u8KeySz == WEP_104_KEY_STRING_SIZE) || (pstrAuthWep->u8KeySz == WEP_40_KEY_STRING_SIZE))
+// 	)
+// 	{
+// 		tstrM2mWifiConnHdr	strConnHdr;
 
-		ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
-											M2M_WIFI_SEC_WEP,
-											sizeof(tstrM2mWifiWep),
-											pstrNetworkId,
-											&strConnHdr);
+// 		ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
+// 											M2M_WIFI_SEC_WEP,
+// 											sizeof(tstrM2mWifiWep),
+// 											pstrNetworkId,
+// 											&strConnHdr);
 
-		if (ret == M2M_SUCCESS)
-		{
-			tstrM2mWifiWep	*pstrWep = (tstrM2mWifiWep*)malloc(sizeof(tstrM2mWifiWep));
-			if (pstrWep != NULL)
-		{
-				pstrWep->u8KeyIndex = pstrAuthWep->u8KeyIndx - 1;
-				pstrWep->u8KeyLen = pstrAuthWep->u8KeySz/2;
-				hexstr_2_bytes(pstrWep->au8WepKey, (pstrAuthWep->pu8WepKey), pstrWep->u8KeyLen);
+// 		if (ret == M2M_SUCCESS)
+// 		{
+// 			tstrM2mWifiWep	*pstrWep = (tstrM2mWifiWep*)malloc(sizeof(tstrM2mWifiWep));
+// 			if (pstrWep != NULL)
+// 		{
+// 				pstrWep->u8KeyIndex = pstrAuthWep->u8KeyIndx - 1;
+// 				pstrWep->u8KeyLen = pstrAuthWep->u8KeySz/2;
+// 				hexstr_2_bytes(pstrWep->au8WepKey, (pstrAuthWep->pu8WepKey), pstrWep->u8KeyLen);
 
-				ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
-								(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
-								(uint8*)pstrWep, sizeof(tstrM2mWifiWep), sizeof(tstrM2mWifiConnHdr));
-				free(pstrWep);
-			}
-		}
-	}
-	return ret;
-	}
+// 				ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
+// 								(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
+// 								(uint8*)pstrWep, sizeof(tstrM2mWifiWep), sizeof(tstrM2mWifiConnHdr));
+// 				free(pstrWep);
+// 			}
+// 		}
+// 	}
+// 	return ret;
+// 	}
 
-sint8 m2m_wifi_connect_psk(
-	tenuCredStoreOption	enuCredStoreOption,
-	tstrNetworkId		*pstrNetworkId,
-	tstrAuthPsk			*pstrAuthPsk
-)
-{
-	sint8	ret = M2M_ERR_INVALID_ARG;
+// sint8 m2m_wifi_connect_psk(
+// 	tenuCredStoreOption	enuCredStoreOption,
+// 	tstrNetworkId		*pstrNetworkId,
+// 	tstrAuthPsk			*pstrAuthPsk
+// )
+// {
+// 	sint8	ret = M2M_ERR_INVALID_ARG;
 
-	if (pstrAuthPsk != NULL)
-	{
-		tstrM2mWifiConnHdr	strConnHdr;
+// 	if (pstrAuthPsk != NULL)
+// 	{
+// 		tstrM2mWifiConnHdr	strConnHdr;
 
-		ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
-											M2M_WIFI_SEC_WPA_PSK,
-											sizeof(tstrM2mWifiPsk),
-											pstrNetworkId,
-											&strConnHdr);
+// 		ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
+// 											M2M_WIFI_SEC_WPA_PSK,
+// 											sizeof(tstrM2mWifiPsk),
+// 											pstrNetworkId,
+// 											&strConnHdr);
 
-		if (ret == M2M_SUCCESS)
-		{
-			tstrM2mWifiPsk	*pstrPsk = (tstrM2mWifiPsk*)malloc(sizeof(tstrM2mWifiPsk));
-			if (pstrPsk != NULL)
-			{
-				m2m_memset((uint8*)pstrPsk, 0, sizeof(tstrM2mWifiPsk));
-				if (pstrAuthPsk->pu8Psk != NULL)
-				{
-					if (pstrAuthPsk->pu8Passphrase != NULL)
-						ret = M2M_ERR_INVALID_ARG;
-					else
-					{
-						pstrPsk->u8PassphraseLen = M2M_MAX_PSK_LEN-1;
-						/* Use hexstr_2_bytes to verify pu8Psk input. */
-						if (M2M_SUCCESS != hexstr_2_bytes(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Psk, pstrPsk->u8PassphraseLen/2))
-							ret = M2M_ERR_INVALID_ARG;
-						m2m_memcpy(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Psk, pstrPsk->u8PassphraseLen);
-					}
-				}
-				else if (pstrAuthPsk->pu8Passphrase != NULL)
-				{
-					if (pstrAuthPsk->u8PassphraseLen > M2M_MAX_PSK_LEN-1)
-						ret = M2M_ERR_INVALID_ARG;
-					else
-					{
-						pstrPsk->u8PassphraseLen = pstrAuthPsk->u8PassphraseLen;
-						m2m_memcpy(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Passphrase, pstrPsk->u8PassphraseLen);
-					}
-				}
-				else
-					ret = M2M_ERR_INVALID_ARG;
-				if (ret == M2M_SUCCESS)
-				{
-					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
-									(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
-									(uint8*)pstrPsk, sizeof(tstrM2mWifiPsk), sizeof(tstrM2mWifiConnHdr));
-				}
-				free(pstrPsk);
-			}
-		}
-	}
-	return ret;
-}
+// 		if (ret == M2M_SUCCESS)
+// 		{
+// 			tstrM2mWifiPsk	*pstrPsk = (tstrM2mWifiPsk*)malloc(sizeof(tstrM2mWifiPsk));
+// 			if (pstrPsk != NULL)
+// 			{
+// 				m2m_memset((uint8*)pstrPsk, 0, sizeof(tstrM2mWifiPsk));
+// 				if (pstrAuthPsk->pu8Psk != NULL)
+// 				{
+// 					if (pstrAuthPsk->pu8Passphrase != NULL)
+// 						ret = M2M_ERR_INVALID_ARG;
+// 					else
+// 					{
+// 						pstrPsk->u8PassphraseLen = M2M_MAX_PSK_LEN-1;
+// 						/* Use hexstr_2_bytes to verify pu8Psk input. */
+// 						if (M2M_SUCCESS != hexstr_2_bytes(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Psk, pstrPsk->u8PassphraseLen/2))
+// 							ret = M2M_ERR_INVALID_ARG;
+// 						m2m_memcpy(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Psk, pstrPsk->u8PassphraseLen);
+// 					}
+// 				}
+// 				else if (pstrAuthPsk->pu8Passphrase != NULL)
+// 				{
+// 					if (pstrAuthPsk->u8PassphraseLen > M2M_MAX_PSK_LEN-1)
+// 						ret = M2M_ERR_INVALID_ARG;
+// 					else
+// 					{
+// 						pstrPsk->u8PassphraseLen = pstrAuthPsk->u8PassphraseLen;
+// 						m2m_memcpy(pstrPsk->au8Passphrase, pstrAuthPsk->pu8Passphrase, pstrPsk->u8PassphraseLen);
+// 					}
+// 				}
+// 				else
+// 					ret = M2M_ERR_INVALID_ARG;
+// 				if (ret == M2M_SUCCESS)
+// 				{
+// 					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
+// 									(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
+// 									(uint8*)pstrPsk, sizeof(tstrM2mWifiPsk), sizeof(tstrM2mWifiConnHdr));
+// 				}
+// 				free(pstrPsk);
+// 			}
+// 		}
+// 	}
+// 	return ret;
+// }
 
-sint8 m2m_wifi_connect_1x_mschap2(
-	tenuCredStoreOption	enuCredStoreOption,
-	tstrNetworkId		*pstrNetworkId,
-	tstrAuth1xMschap2	*pstrAuth1xMschap2
-)
-{
-	sint8 ret = M2M_ERR_INVALID_ARG;
-	if (pstrAuth1xMschap2 != NULL)
-	{
-		if (pstrAuth1xMschap2->pu8Domain == NULL)
-			pstrAuth1xMschap2->u16DomainLen = 0;
-		if (
-				(pstrAuth1xMschap2->pu8UserName != NULL)
-			&&	(pstrAuth1xMschap2->pu8Password != NULL)
-			&&	((uint32)(pstrAuth1xMschap2->u16DomainLen) + pstrAuth1xMschap2->u16UserNameLen <= M2M_AUTH_1X_USER_LEN_MAX)
-			&&	(pstrAuth1xMschap2->u16PasswordLen <= M2M_AUTH_1X_PASSWORD_LEN_MAX)
-		)
-		{
-			tstrM2mWifiConnHdr	strConnHdr;
-			uint16				u16AuthSize =	sizeof(tstrM2mWifi1xHdr) +
-												pstrAuth1xMschap2->u16DomainLen +
-												pstrAuth1xMschap2->u16UserNameLen +
-												pstrAuth1xMschap2->u16PasswordLen;
+// sint8 m2m_wifi_connect_1x_mschap2(
+// 	tenuCredStoreOption	enuCredStoreOption,
+// 	tstrNetworkId		*pstrNetworkId,
+// 	tstrAuth1xMschap2	*pstrAuth1xMschap2
+// )
+// {
+// 	sint8 ret = M2M_ERR_INVALID_ARG;
+// 	if (pstrAuth1xMschap2 != NULL)
+// 	{
+// 		if (pstrAuth1xMschap2->pu8Domain == NULL)
+// 			pstrAuth1xMschap2->u16DomainLen = 0;
+// 		if (
+// 				(pstrAuth1xMschap2->pu8UserName != NULL)
+// 			&&	(pstrAuth1xMschap2->pu8Password != NULL)
+// 			&&	((uint32)(pstrAuth1xMschap2->u16DomainLen) + pstrAuth1xMschap2->u16UserNameLen <= M2M_AUTH_1X_USER_LEN_MAX)
+// 			&&	(pstrAuth1xMschap2->u16PasswordLen <= M2M_AUTH_1X_PASSWORD_LEN_MAX)
+// 		)
+// 		{
+// 			tstrM2mWifiConnHdr	strConnHdr;
+// 			uint16				u16AuthSize =	sizeof(tstrM2mWifi1xHdr) +
+// 												pstrAuth1xMschap2->u16DomainLen +
+// 												pstrAuth1xMschap2->u16UserNameLen +
+// 												pstrAuth1xMschap2->u16PasswordLen;
 
-			ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
-												M2M_WIFI_SEC_802_1X,
-												u16AuthSize,
-												pstrNetworkId,
-												&strConnHdr);
+// 			ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
+// 												M2M_WIFI_SEC_802_1X,
+// 												u16AuthSize,
+// 												pstrNetworkId,
+// 												&strConnHdr);
 
-			if (ret == M2M_SUCCESS)
-			{
-				tstrM2mWifi1xHdr	*pstr1xHdr = (tstrM2mWifi1xHdr*)malloc(u16AuthSize);
-				if (pstr1xHdr != NULL)
-				{
-					uint8	*pu8AuthPtr = pstr1xHdr->au81xAuthDetails;
-					m2m_memset((uint8*)pstr1xHdr, 0, u16AuthSize);
+// 			if (ret == M2M_SUCCESS)
+// 			{
+// 				tstrM2mWifi1xHdr	*pstr1xHdr = (tstrM2mWifi1xHdr*)malloc(u16AuthSize);
+// 				if (pstr1xHdr != NULL)
+// 				{
+// 					uint8	*pu8AuthPtr = pstr1xHdr->au81xAuthDetails;
+// 					m2m_memset((uint8*)pstr1xHdr, 0, u16AuthSize);
 
-					pstr1xHdr->u8Flags = M2M_802_1X_MSCHAP2_FLAG;
-					if (pstrAuth1xMschap2->bUnencryptedUserName == true)
-						pstr1xHdr->u8Flags |= M2M_802_1X_UNENCRYPTED_USERNAME_FLAG;
-					if (pstrAuth1xMschap2->bPrependDomain == true)
-						pstr1xHdr->u8Flags |= M2M_802_1X_PREPEND_DOMAIN_FLAG;
+// 					pstr1xHdr->u8Flags = M2M_802_1X_MSCHAP2_FLAG;
+// 					if (pstrAuth1xMschap2->bUnencryptedUserName == true)
+// 						pstr1xHdr->u8Flags |= M2M_802_1X_UNENCRYPTED_USERNAME_FLAG;
+// 					if (pstrAuth1xMschap2->bPrependDomain == true)
+// 						pstr1xHdr->u8Flags |= M2M_802_1X_PREPEND_DOMAIN_FLAG;
 
-					pstr1xHdr->u8DomainLength = 0;
-					if (pstrAuth1xMschap2->pu8Domain != NULL)
-					{
-						pstr1xHdr->u8DomainLength = (uint8)(pstrAuth1xMschap2->u16DomainLen);
-						m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8Domain, pstr1xHdr->u8DomainLength);
-						pu8AuthPtr += pstr1xHdr->u8DomainLength;
-					}
+// 					pstr1xHdr->u8DomainLength = 0;
+// 					if (pstrAuth1xMschap2->pu8Domain != NULL)
+// 					{
+// 						pstr1xHdr->u8DomainLength = (uint8)(pstrAuth1xMschap2->u16DomainLen);
+// 						m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8Domain, pstr1xHdr->u8DomainLength);
+// 						pu8AuthPtr += pstr1xHdr->u8DomainLength;
+// 					}
 
-					pstr1xHdr->u16UserNameLength = (pstrAuth1xMschap2->u16UserNameLen);
-					m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8UserName, pstr1xHdr->u16UserNameLength);
-					pu8AuthPtr += pstr1xHdr->u16UserNameLength;
+// 					pstr1xHdr->u16UserNameLength = (pstrAuth1xMschap2->u16UserNameLen);
+// 					m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8UserName, pstr1xHdr->u16UserNameLength);
+// 					pu8AuthPtr += pstr1xHdr->u16UserNameLength;
 
-					pstr1xHdr->u16PrivateKeyOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
-					pstr1xHdr->u16PrivateKeyLength = pstrAuth1xMschap2->u16PasswordLen;
-					m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8Password, pstr1xHdr->u16PrivateKeyLength);
+// 					pstr1xHdr->u16PrivateKeyOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
+// 					pstr1xHdr->u16PrivateKeyLength = pstrAuth1xMschap2->u16PasswordLen;
+// 					m2m_memcpy(pu8AuthPtr, pstrAuth1xMschap2->pu8Password, pstr1xHdr->u16PrivateKeyLength);
 
-					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
-									(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
-									(uint8*)pstr1xHdr, u16AuthSize,
-									sizeof(tstrM2mWifiConnHdr));
-					free(pstr1xHdr);
-				}
-			}
-		}
-	}
-	return ret;
-}
+// 					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
+// 									(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
+// 									(uint8*)pstr1xHdr, u16AuthSize,
+// 									sizeof(tstrM2mWifiConnHdr));
+// 					free(pstr1xHdr);
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return ret;
+// }
 
-sint8 m2m_wifi_connect_1x_tls(
-tenuCredStoreOption	enuCredStoreOption,
-tstrNetworkId		*pstrNetworkId,
-tstrAuth1xTls		*pstrAuth1xTls
-)
-{
-	sint8 ret = M2M_ERR_INVALID_ARG;
-	if (pstrAuth1xTls != NULL)
-	{
-		if (pstrAuth1xTls->pu8Domain == NULL)
-			pstrAuth1xTls->u16DomainLen = 0;
-		if (
-				(pstrAuth1xTls->pu8UserName != NULL)
-			&&	(pstrAuth1xTls->pu8PrivateKey_Mod != NULL)
-			&&	(pstrAuth1xTls->pu8PrivateKey_Exp != NULL)
-			&&	(pstrAuth1xTls->pu8Certificate != NULL)
-			&&	((uint32)(pstrAuth1xTls->u16DomainLen) + pstrAuth1xTls->u16UserNameLen <= M2M_AUTH_1X_USER_LEN_MAX)
-			&&	(pstrAuth1xTls->u16PrivateKeyLen <= M2M_AUTH_1X_PRIVATEKEY_LEN_MAX)
-			&&	(pstrAuth1xTls->u16CertificateLen <= M2M_AUTH_1X_CERT_LEN_MAX)
-		)
-		{
-			tstrM2mWifiConnHdr	strConnHdr;
-			uint16				u16AuthSize =	sizeof(tstrM2mWifi1xHdr) + 
-												pstrAuth1xTls->u16DomainLen +
-												pstrAuth1xTls->u16UserNameLen +
-												(2 * pstrAuth1xTls->u16PrivateKeyLen) +
-												pstrAuth1xTls->u16CertificateLen;
+// sint8 m2m_wifi_connect_1x_tls(
+// tenuCredStoreOption	enuCredStoreOption,
+// tstrNetworkId		*pstrNetworkId,
+// tstrAuth1xTls		*pstrAuth1xTls
+// )
+// {
+// 	sint8 ret = M2M_ERR_INVALID_ARG;
+// 	if (pstrAuth1xTls != NULL)
+// 	{
+// 		if (pstrAuth1xTls->pu8Domain == NULL)
+// 			pstrAuth1xTls->u16DomainLen = 0;
+// 		if (
+// 				(pstrAuth1xTls->pu8UserName != NULL)
+// 			&&	(pstrAuth1xTls->pu8PrivateKey_Mod != NULL)
+// 			&&	(pstrAuth1xTls->pu8PrivateKey_Exp != NULL)
+// 			&&	(pstrAuth1xTls->pu8Certificate != NULL)
+// 			&&	((uint32)(pstrAuth1xTls->u16DomainLen) + pstrAuth1xTls->u16UserNameLen <= M2M_AUTH_1X_USER_LEN_MAX)
+// 			&&	(pstrAuth1xTls->u16PrivateKeyLen <= M2M_AUTH_1X_PRIVATEKEY_LEN_MAX)
+// 			&&	(pstrAuth1xTls->u16CertificateLen <= M2M_AUTH_1X_CERT_LEN_MAX)
+// 		)
+// 		{
+// 			tstrM2mWifiConnHdr	strConnHdr;
+// 			uint16				u16AuthSize =	sizeof(tstrM2mWifi1xHdr) + 
+// 												pstrAuth1xTls->u16DomainLen +
+// 												pstrAuth1xTls->u16UserNameLen +
+// 												(2 * pstrAuth1xTls->u16PrivateKeyLen) +
+// 												pstrAuth1xTls->u16CertificateLen;
 
-			ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
-												M2M_WIFI_SEC_802_1X,
-												u16AuthSize,
-												pstrNetworkId,
-												&strConnHdr);
+// 			ret = m2m_wifi_connect_prepare_msg(	enuCredStoreOption,
+// 												M2M_WIFI_SEC_802_1X,
+// 												u16AuthSize,
+// 												pstrNetworkId,
+// 												&strConnHdr);
 
-			if (ret == M2M_SUCCESS)
-			{
-				uint16				u16Payload1Size = u16AuthSize - pstrAuth1xTls->u16CertificateLen;
-				tstrM2mWifi1xHdr	*pstr1xHdr = (tstrM2mWifi1xHdr*)malloc(u16Payload1Size);
-				if (pstr1xHdr != NULL)
-				{
-					tstrM2mWifiAuthInfoHdr strInfoHdr = {0};
+// 			if (ret == M2M_SUCCESS)
+// 			{
+// 				uint16				u16Payload1Size = u16AuthSize - pstrAuth1xTls->u16CertificateLen;
+// 				tstrM2mWifi1xHdr	*pstr1xHdr = (tstrM2mWifi1xHdr*)malloc(u16Payload1Size);
+// 				if (pstr1xHdr != NULL)
+// 				{
+// 					tstrM2mWifiAuthInfoHdr strInfoHdr = {0};
 
-					uint8	*pu8AuthPtr = pstr1xHdr->au81xAuthDetails;
-					m2m_memset((uint8*)pstr1xHdr, 0, u16Payload1Size);
+// 					uint8	*pu8AuthPtr = pstr1xHdr->au81xAuthDetails;
+// 					m2m_memset((uint8*)pstr1xHdr, 0, u16Payload1Size);
 
-					pstr1xHdr->u8Flags = M2M_802_1X_TLS_FLAG;
-					if (pstrAuth1xTls->bUnencryptedUserName == true)
-						pstr1xHdr->u8Flags |= M2M_802_1X_UNENCRYPTED_USERNAME_FLAG;
-					if (pstrAuth1xTls->bPrependDomain == true)
-						pstr1xHdr->u8Flags |= M2M_802_1X_PREPEND_DOMAIN_FLAG;
+// 					pstr1xHdr->u8Flags = M2M_802_1X_TLS_FLAG;
+// 					if (pstrAuth1xTls->bUnencryptedUserName == true)
+// 						pstr1xHdr->u8Flags |= M2M_802_1X_UNENCRYPTED_USERNAME_FLAG;
+// 					if (pstrAuth1xTls->bPrependDomain == true)
+// 						pstr1xHdr->u8Flags |= M2M_802_1X_PREPEND_DOMAIN_FLAG;
 
-					pstr1xHdr->u8DomainLength = 0;
-					if (pstrAuth1xTls->pu8Domain != NULL)
-					{
-						pstr1xHdr->u8DomainLength = (uint8)(pstrAuth1xTls->u16DomainLen);
-						m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8Domain, pstr1xHdr->u8DomainLength);
-						pu8AuthPtr += pstr1xHdr->u8DomainLength;
-					}
+// 					pstr1xHdr->u8DomainLength = 0;
+// 					if (pstrAuth1xTls->pu8Domain != NULL)
+// 					{
+// 						pstr1xHdr->u8DomainLength = (uint8)(pstrAuth1xTls->u16DomainLen);
+// 						m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8Domain, pstr1xHdr->u8DomainLength);
+// 						pu8AuthPtr += pstr1xHdr->u8DomainLength;
+// 					}
 
-					pstr1xHdr->u16UserNameLength = (pstrAuth1xTls->u16UserNameLen);
-					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8UserName, pstr1xHdr->u16UserNameLength);
-					pu8AuthPtr += pstr1xHdr->u16UserNameLength;
+// 					pstr1xHdr->u16UserNameLength = (pstrAuth1xTls->u16UserNameLen);
+// 					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8UserName, pstr1xHdr->u16UserNameLength);
+// 					pu8AuthPtr += pstr1xHdr->u16UserNameLength;
 
-					pstr1xHdr->u16PrivateKeyOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
-					pstr1xHdr->u16PrivateKeyLength = pstrAuth1xTls->u16PrivateKeyLen;
-					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8PrivateKey_Mod, pstr1xHdr->u16PrivateKeyLength);
-					pu8AuthPtr += pstr1xHdr->u16PrivateKeyLength;
-					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8PrivateKey_Exp, pstr1xHdr->u16PrivateKeyLength);
-					pu8AuthPtr += pstr1xHdr->u16PrivateKeyLength;
+// 					pstr1xHdr->u16PrivateKeyOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
+// 					pstr1xHdr->u16PrivateKeyLength = pstrAuth1xTls->u16PrivateKeyLen;
+// 					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8PrivateKey_Mod, pstr1xHdr->u16PrivateKeyLength);
+// 					pu8AuthPtr += pstr1xHdr->u16PrivateKeyLength;
+// 					m2m_memcpy(pu8AuthPtr, pstrAuth1xTls->pu8PrivateKey_Exp, pstr1xHdr->u16PrivateKeyLength);
+// 					pu8AuthPtr += pstr1xHdr->u16PrivateKeyLength;
 
-					pstr1xHdr->u16CertificateOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
-					pstr1xHdr->u16CertificateLength = pstrAuth1xTls->u16CertificateLen;
+// 					pstr1xHdr->u16CertificateOffset = pu8AuthPtr - pstr1xHdr->au81xAuthDetails;
+// 					pstr1xHdr->u16CertificateLength = pstrAuth1xTls->u16CertificateLen;
 
-					strInfoHdr.u8Type = M2M_802_1X_TLS_CLIENT_CERTIFICATE;
-					strInfoHdr.u16InfoPos = pstr1xHdr->u16CertificateOffset;
-					strInfoHdr.u16InfoLen = pstr1xHdr->u16CertificateLength;
-					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_IND_CONN_PARAM | M2M_REQ_DATA_PKT,
-									(uint8*)&strInfoHdr, sizeof(tstrM2mWifiAuthInfoHdr),
-									pstrAuth1xTls->pu8Certificate, pstrAuth1xTls->u16CertificateLen,
-									sizeof(tstrM2mWifiAuthInfoHdr));
+// 					strInfoHdr.u8Type = M2M_802_1X_TLS_CLIENT_CERTIFICATE;
+// 					strInfoHdr.u16InfoPos = pstr1xHdr->u16CertificateOffset;
+// 					strInfoHdr.u16InfoLen = pstr1xHdr->u16CertificateLength;
+// 					ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_IND_CONN_PARAM | M2M_REQ_DATA_PKT,
+// 									(uint8*)&strInfoHdr, sizeof(tstrM2mWifiAuthInfoHdr),
+// 									pstrAuth1xTls->pu8Certificate, pstrAuth1xTls->u16CertificateLen,
+// 									sizeof(tstrM2mWifiAuthInfoHdr));
 
-					if (ret == M2M_SUCCESS)
-					{
-						ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
-										(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
-										(uint8*)pstr1xHdr, u16Payload1Size,
-										sizeof(tstrM2mWifiConnHdr));
-					}
-					free(pstr1xHdr);
-				}
-			}
-		}
-	}
-	return ret;
-}
+// 					if (ret == M2M_SUCCESS)
+// 					{
+// 						ret = hif_send(	M2M_REQ_GROUP_WIFI, M2M_WIFI_REQ_CONN | M2M_REQ_DATA_PKT,
+// 										(uint8*)&strConnHdr, sizeof(tstrM2mWifiConnHdr),
+// 										(uint8*)pstr1xHdr, u16Payload1Size,
+// 										sizeof(tstrM2mWifiConnHdr));
+// 					}
+// 					free(pstr1xHdr);
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return ret;
+// }
 
-sint8 m2m_wifi_connect(char *pcSsid, uint8 u8SsidLen, uint8 u8SecType, void *pvAuthInfo, uint16 u16Ch)
-{
-    return m2m_wifi_connect_sc(pcSsid, u8SsidLen, u8SecType, pvAuthInfo,  u16Ch, 0);
-}
+// sint8 m2m_wifi_connect(char *pcSsid, uint8 u8SsidLen, uint8 u8SecType, void *pvAuthInfo, uint16 u16Ch)
+// {
+//     return m2m_wifi_connect_sc(pcSsid, u8SsidLen, u8SecType, pvAuthInfo,  u16Ch, 0);
+// }
 
-sint8 m2m_wifi_connect_sc(char *pcSsid, uint8 u8SsidLen, uint8 u8SecType, void *pvAuthInfo, uint16 u16Ch, uint8 u8NoSaveCred)
-{
-    sint8               s8Ret              = M2M_ERR_INVALID_ARG;
-    tstrNetworkId       strNetworkId       = {NULL, (uint8*)pcSsid, u8SsidLen, (tenuM2mScanCh)u16Ch};
-    tenuCredStoreOption enuCredStoreOption = u8NoSaveCred ? WIFI_CRED_DONTSAVE : WIFI_CRED_SAVE_ENCRYPTED;
+// sint8 m2m_wifi_connect_sc(char *pcSsid, uint8 u8SsidLen, uint8 u8SecType, void *pvAuthInfo, uint16 u16Ch, uint8 u8NoSaveCred)
+// {
+//     sint8               s8Ret              = M2M_ERR_INVALID_ARG;
+//     tstrNetworkId       strNetworkId       = {NULL, (uint8*)pcSsid, u8SsidLen, (tenuM2mScanCh)u16Ch};
+//     tenuCredStoreOption enuCredStoreOption = u8NoSaveCred ? WIFI_CRED_DONTSAVE : WIFI_CRED_SAVE_ENCRYPTED;
 
-    /* This API does not support SSIDs which contain '\0'. If there is a '\0' character within the
-     * first u8SsidLen characters, then assume that the input u8SsidLen was incorrect - set length
-     * to strlen(pcSsid) and continue. This is to avoid a change from the behaviour of previously
-     * released drivers. */
-    if (u8SsidLen < M2M_MAX_SSID_LEN)
-	{
-        while (u8SsidLen--)
-            if (strNetworkId.pu8Ssid[u8SsidLen] == 0){
-                strNetworkId.u8SsidLen = u8SsidLen;}
-	}
+//     /* This API does not support SSIDs which contain '\0'. If there is a '\0' character within the
+//      * first u8SsidLen characters, then assume that the input u8SsidLen was incorrect - set length
+//      * to strlen(pcSsid) and continue. This is to avoid a change from the behaviour of previously
+//      * released drivers. */
+//     if (u8SsidLen < M2M_MAX_SSID_LEN)
+// 	{
+//         while (u8SsidLen--)
+//             if (strNetworkId.pu8Ssid[u8SsidLen] == 0){
+//                 strNetworkId.u8SsidLen = u8SsidLen;}
+// 	}
 
-	switch ((tenuM2mSecType)u8SecType)
-	{
-		case M2M_WIFI_SEC_OPEN:
-        s8Ret = m2m_wifi_connect_open(enuCredStoreOption, &strNetworkId);
-		break;
-		case M2M_WIFI_SEC_WPA_PSK: 
-		if (pvAuthInfo != NULL)
-		{
-			tstrAuthPsk	strAuthPsk = {NULL, NULL, 0};
-            uint16      len        = m2m_strlen((uint8*)pvAuthInfo);
+// 	switch ((tenuM2mSecType)u8SecType)
+// 	{
+// 		case M2M_WIFI_SEC_OPEN:
+//         s8Ret = m2m_wifi_connect_open(enuCredStoreOption, &strNetworkId);
+// 		break;
+// 		case M2M_WIFI_SEC_WPA_PSK: 
+// 		if (pvAuthInfo != NULL)
+// 		{
+// 			tstrAuthPsk	strAuthPsk = {NULL, NULL, 0};
+//             uint16      len        = m2m_strlen((uint8*)pvAuthInfo);
 
-			if (len == M2M_MAX_PSK_LEN-1)
-			{
-				strAuthPsk.pu8Psk = (uint8*)pvAuthInfo;
-			}
-			else
-			{
-				strAuthPsk.pu8Passphrase = (uint8*)pvAuthInfo;
-				strAuthPsk.u8PassphraseLen = len;
-			}
-            s8Ret = m2m_wifi_connect_psk(enuCredStoreOption, &strNetworkId, &strAuthPsk);
-		}
-		break;
-		case M2M_WIFI_SEC_WEP:
-		if (pvAuthInfo != NULL)
-		{
-			tstrM2mWifiWepParams	*pstrWepParams = (tstrM2mWifiWepParams*)pvAuthInfo;
-			tstrAuthWep				strAuthWep = {pstrWepParams->au8WepKey, pstrWepParams->u8KeySz-1, pstrWepParams->u8KeyIndx};
+// 			if (len == M2M_MAX_PSK_LEN-1)
+// 			{
+// 				strAuthPsk.pu8Psk = (uint8*)pvAuthInfo;
+// 			}
+// 			else
+// 			{
+// 				strAuthPsk.pu8Passphrase = (uint8*)pvAuthInfo;
+// 				strAuthPsk.u8PassphraseLen = len;
+// 			}
+//             s8Ret = m2m_wifi_connect_psk(enuCredStoreOption, &strNetworkId, &strAuthPsk);
+// 		}
+// 		break;
+// 		case M2M_WIFI_SEC_WEP:
+// 		if (pvAuthInfo != NULL)
+// 		{
+// 			tstrM2mWifiWepParams	*pstrWepParams = (tstrM2mWifiWepParams*)pvAuthInfo;
+// 			tstrAuthWep				strAuthWep = {pstrWepParams->au8WepKey, pstrWepParams->u8KeySz-1, pstrWepParams->u8KeyIndx};
 
-            s8Ret = m2m_wifi_connect_wep(enuCredStoreOption, &strNetworkId, &strAuthWep);
-		}
-		break;
-		case M2M_WIFI_SEC_802_1X:
-		if (pvAuthInfo != NULL)
-		{
-			tstr1xAuthCredentials	*pstr1xParams = (tstr1xAuthCredentials*)pvAuthInfo;
-			tstrAuth1xMschap2		strAuth1xMschap2 = {NULL,
-				pstr1xParams->au8UserName,
-				pstr1xParams->au8Passwd,
-				0,
-                                                        m2m_strlen(pstr1xParams->au8UserName),
-                                                        m2m_strlen(pstr1xParams->au8Passwd),
-                                                        false};
+//             s8Ret = m2m_wifi_connect_wep(enuCredStoreOption, &strNetworkId, &strAuthWep);
+// 		}
+// 		break;
+// 		case M2M_WIFI_SEC_802_1X:
+// 		if (pvAuthInfo != NULL)
+// 		{
+// 			tstr1xAuthCredentials	*pstr1xParams = (tstr1xAuthCredentials*)pvAuthInfo;
+// 			tstrAuth1xMschap2		strAuth1xMschap2 = {NULL,
+// 				pstr1xParams->au8UserName,
+// 				pstr1xParams->au8Passwd,
+// 				0,
+//                                                         m2m_strlen(pstr1xParams->au8UserName),
+//                                                         m2m_strlen(pstr1xParams->au8Passwd),
+//                                                         false};
 
-            s8Ret = m2m_wifi_connect_1x_mschap2(enuCredStoreOption, &strNetworkId, &strAuth1xMschap2);
-		}
-		break;
-		default:
-		break;
-	}
-    return s8Ret;
-}
+//             s8Ret = m2m_wifi_connect_1x_mschap2(enuCredStoreOption, &strNetworkId, &strAuth1xMschap2);
+// 		}
+// 		break;
+// 		default:
+// 		break;
+// 	}
+//     return s8Ret;
+// }
 
 sint8 m2m_wifi_disconnect(void)
 {

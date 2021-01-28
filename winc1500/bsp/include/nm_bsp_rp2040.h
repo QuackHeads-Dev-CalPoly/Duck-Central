@@ -95,4 +95,6 @@
   #define WINC1500_SPI_CLK_SPEED 12000000
 #endif
 
+#define NM_EDGE_INTERRUPT 1
+
 #endif /* _NM_BSP_ARDUINO_H_ */

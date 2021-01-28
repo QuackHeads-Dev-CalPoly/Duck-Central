@@ -56,6 +56,16 @@
 */
 #define CONST const
 
+#include <stdio.h>
+/* Added by Kevin N. */
+#define CONF_WINC_USE_SPI 1
+#define CONF_WINC_DEBUG 1
+#ifdef CONF_WINC_DEBUG
+  #define CONF_WINC_PRINTF printf
+#else
+  #define CONF_WINC_PRINTF printf
+#endif
+
 /*!< 
 *     Used for code portability.
 */

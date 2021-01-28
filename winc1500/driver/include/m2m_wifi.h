@@ -58,7 +58,9 @@
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 INCLUDES
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
-#include <compiler.h>
+/* Commenting out temp */
+//#include <compiler.h>
+/* ------------------- */
 #include "common/include/nm_common.h"
 #include "driver/include/m2m_types.h"
 #include "driver/source/nmdrv.h"
@@ -376,13 +378,15 @@ typedef struct {
     uint16  u16PasswordLen;
     /*!< Length of Password (in ASCII characters).
             Permitted values are between 0 and @ref M2M_AUTH_1X_PASSWORD_LEN_MAX. */
-    bool    bUnencryptedUserName;
+    //bool    bUnencryptedUserName;
+	uint8 bUnencryptedUserName;
     /*!< Determines whether UserName or "anonymous" is sent (unencrypted) in the initial EAP
             identity response. Domain is sent in both cases. \n
             true: UserName is sent in the initial EAP identity response (not recommended).
             false: "anonymous" is sent in the initial EAP identity response. This setting is
             recommended for tunneled methods. MSCHAPv2 is always a tunneled method. */
-    bool    bPrependDomain;
+    //bool    bPrependDomain;
+	uint8 bPrependDomain;
     /*!< Determines whether Domain is prepended or appended to UserName in EAP identity responses.
             true: Domain is prepended to UserName - [Domain][UserName].
             false: Domain is appended to UserName - [UserName][Domain]. */
@@ -428,13 +432,15 @@ typedef struct {
     uint16  u16CertificateLen;
     /*!< Length of Certificate (in bytes).
             Permitted values are between 0 and @ref M2M_AUTH_1X_CERT_LEN_MAX. */
-    bool    bUnencryptedUserName;
-    /*!< Determines whether UserName or "anonymous" is sent (unencrypted) in the initial EAP
+    //bool    bUnencryptedUserName;
+    uint8 bUnencryptedUserName;
+	/*!< Determines whether UserName or "anonymous" is sent (unencrypted) in the initial EAP
             identity response. Domain is sent in both cases. \n
             true: UserName is sent in the initial EAP identity response (required for EAP-TLS).
             false: "anonymous" is sent in the initial EAP identity response. This setting is
             recommended for tunneled methods such as EAP-PEAP/TLS. */
-    bool    bPrependDomain;
+    //bool    bPrependDomain;
+	uint8 bPrependDomain;
     /*!< Determines whether Domain is prepended or appended to UserName in EAP identity responses.
             true: Domain is prepended to UserName - [Domain][UserName].
             false: Domain is appended to UserName - [UserName][Domain]. */
