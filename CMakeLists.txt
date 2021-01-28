@@ -19,13 +19,14 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(duck duck.c )
+add_executable(duck duck.c gps.c gps.h minmea.c minmea.h)
 
 pico_set_program_name(duck "duck")
 pico_set_program_version(duck "0.1")
 
-pico_enable_stdio_uart(duck 1)
-pico_enable_stdio_usb(duck 0)
+# enable usb output, disable uart output
+pico_enable_stdio_usb(duck 1)
+pico_enable_stdio_uart(duck 0)
 
 # Add the standard library to the build
 target_link_libraries(duck pico_stdlib)
