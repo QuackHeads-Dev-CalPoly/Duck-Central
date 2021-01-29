@@ -24,7 +24,6 @@ set( DUCK_WIFI_SRC
         ${PROJECT_SOURCE_DIR}/winc1500/bus_wrapper/source/nm_bus_wrapper_rp2040.c
         ${PROJECT_SOURCE_DIR}/winc1500/socket/source/socket.c
         ${PROJECT_SOURCE_DIR}/winc1500/common/source/nm_common.c
-        ${PROJECT_SOURCE_DIR}/winc1500/spi_flash/source/flexible_flash.c
         ${PROJECT_SOURCE_DIR}/winc1500/spi_flash/source/spi_flash.c
         ${PROJECT_SOURCE_DIR}/winc1500/bus_wrapper/source/nm_bus_wrapper_rp2040.c
         ${PROJECT_SOURCE_DIR}/winc1500/bsp/source/nm_bsp_rp2040.c

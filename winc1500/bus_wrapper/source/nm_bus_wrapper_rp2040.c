@@ -32,6 +32,7 @@
  *
  */
 
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
@@ -54,14 +55,17 @@ static sint8 spi_rw(uint8* pu8Mosi, uint8* pu8Miso, uint16 u16Sz)
 {
     /* TODO: Fix some of this dummy code for the new variation on pico */
     uint8 u8Dummy = 0;
+    uint8 u8SkipMosi = 0, u8SkipMiso = 0;
 
     if (!pu8Mosi)
     {
         pu8Mosi = &u8Dummy;
+        u8SkipMosi = 1;
     }
     else if(!pu8Miso)
     {
         pu8Miso = &u8Dummy;
+        u8SkipMiso = 1;
     }
     else
     {
@@ -71,7 +75,16 @@ static sint8 spi_rw(uint8* pu8Mosi, uint8* pu8Miso, uint16 u16Sz)
     /* Set the CS PIN Low to begin transmission */
     gpio_put(WINC1500_SPI_CS_PIN, LOW);
 
-    spi_write_read_blocking(WINC1500_SPI_PORT, pu8Mosi, pu8Miso, u16Sz);
+    while( u16Sz )
+    {
+        spi_write_read_blocking(WINC1500_SPI_PORT, pu8Mosi, pu8Miso, 1);
+
+        u16Sz--;
+        if(!u8SkipMiso)
+            pu8Miso++;
+        if(!u8SkipMosi)
+            pu8Mosi++;
+    }
 
     /* Set the CS PIN High to begin transmission */
     gpio_put(WINC1500_SPI_CS_PIN, HIGH);
