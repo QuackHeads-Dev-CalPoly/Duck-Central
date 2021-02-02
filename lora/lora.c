@@ -2,6 +2,7 @@
 
 #include "lora.h"
 #include "hardware/spi.h"
+#include "hardware/irq.h"
 #include <stdio.h>
 
 #define SPI_DATA_BITS 8
@@ -27,7 +28,8 @@
 void set_frequency(enum frequency freq);
 void init_io(void);
 void init_modem(void);
-void irq_tx_complete(uint gpio, uint32_t events);
+void irq_rx_complete(uint gpio, uint32_t events);
+void modify_packet(uint8_t* payload[], uint8_t* payload_size);
 void write_register(uint8_t reg, uint8_t data);
 uint8_t read_register(uint8_t addr);
 static inline void cs_select(void);
@@ -41,13 +43,16 @@ void lora_setup(void) {
 
     init_modem();
 
+    write_register(REG_OPMODE, OPMODE_STDBY);
+    uint8_t mode = read_register(REG_OPMODE);
+
     printf("LoRa initialization complete.\n");
 }
 
 void init_io(void) {
     // SPI0 at 0.5MHz.
     spi_init(SPI_PORT, 500 * 1000);
-    //spi_set_format(SPI_PORT, SPI_DATA_BITS, 0, 0, SPI_MSB_FIRST);
+
     gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
@@ -70,10 +75,10 @@ void init_modem(void) {
     write_register(REG_MODEM_CONFIG_1, LORA_BW | LORA_ECR | LORA_HEADER);
     write_register(REG_MODEM_CONFIG_2, LORA_SF | LORA_CRC);
 
-    // enable 'tx complete' signal
-    write_register(REG_DIO_MAPPING_1, DIO_0_TX_COMPLETE);
-    // set interrupt when TX is complete
-    gpio_set_irq_enabled_with_callback(PIN_DIO0, GPIO_IRQ_EDGE_FALL, true, &irq_tx_complete);
+    // enable 'rx complete' signal
+    write_register(REG_DIO_MAPPING_1, DIO_0_RX_COMPLETE);
+    // set interrupt when RX is complete
+    gpio_set_irq_enabled_with_callback(PIN_DIO0, GPIO_IRQ_EDGE_RISE, true, &irq_rx_complete);
 }
 
 void set_frequency(enum frequency freq) { 
@@ -92,7 +97,26 @@ void set_frequency(enum frequency freq) {
     lora_set_op_mode(original_op_mode);
 }
 
-void lora_set_op_mode(uint8_t mode) { 
+void lora_set_op_mode(uint8_t mode) {
+    switch (mode) {
+        case OPMODE_TX: {
+            printf("setting to TX single\n");
+            // Low noise amplifier off for transmissions to save power
+            write_register(REG_LNA, LNA_OFF_GAIN);
+            write_register(REG_PA_CONFIG, PA_MAX_BOOST);
+        } break;
+
+        case OPMODE_RX_CONT: {
+            printf("setting to RX Continuous\n");
+            write_register(REG_LNA, LNA_MAX_GAIN);
+            write_register(REG_PA_CONFIG, PA_OFF_BOOST);
+        } break;
+
+        default:
+            printf("setting to mode=%u\n", mode);
+            break;
+    }
+
     write_register(REG_OPMODE, mode);
 }
 
@@ -101,7 +125,12 @@ void lora_set_op_mode(uint8_t mode) {
  **/
 void lora_send_packet(uint8_t* buffer, uint8_t length) {
     printf("\n\n-----------BEGIN lora_send_packet()------------\n");
-    printf("buffer is '%s' (size=%u)\n", buffer, length);
+    printf("buffer is (size=%u):\n", length);
+    uint8_t i = 0;
+    for (i = 0; i < length; i++) {
+        printf("%02x", buffer[i]);
+    }
+    printf("\n");
 
     // sleep to write registers
     lora_set_op_mode(OPMODE_STDBY);
@@ -127,12 +156,99 @@ void lora_send_packet(uint8_t* buffer, uint8_t length) {
     printf("-----------END lora_send_packet()------------\n\n\n");
 }
 
-void irq_tx_complete(uint gpio, uint32_t events) {
+/**
+ * See: datasheet page 36
+ * In order to retrieve received data from the FIFO, we must ensure
+ * ValidHeader, PayloadCrcError, RxDone, and RxTimeout interrupts
+ * in the status register RegIrqFlags are not asserted to ensure that
+ * packet reception has terminated successfully.
+ * In case of errors, the packet shall be discarded.
+ **/
+void lora_repeat_rx(void) {
+    uint8_t irq_flags = read_register(REG_IRQ_FLAGS);
+
+    uint8_t irq_flag_masks = IRQ_FLAG_VALID_HEADER ||
+                             IRQ_FLAG_PAYLOAD_CRC_ERROR || 
+                             IRQ_FLAG_RX_DONE ||
+                             IRQ_FLAG_RX_TIMEOUT;
+
+    if (irq_flags & irq_flag_masks) {
+        // clear all interrupts
+        write_register(REG_IRQ_FLAGS, 0xFF);
+        
+        // tell somebody
+        printf("error in flags: %02x\n", irq_flags);
+        fflush(stdout);
+
+        // run away
+        return;
+    }
+    else {
+        // mask interrupts while we process
+        write_register(REG_IRQ_FLAGS_MASK, irq_flag_masks);
+    }
+
+    // FifoNbRxBytes indicates the number of bytes received thus far
+    // RegRxDataAddr is a pointer that indicates precisely where the LoRa
+    // modem received data has been written up to
+
+    // Set the FIFO pointer to the location of the last packet received in
+    // the FIFO
+    write_register(REG_FIFO_ADDR_PTR, read_register(REG_FIFO_RX_CURRENT_ADDR));
+
+    uint8_t payload_size = read_register(REG_RX_NB_BYTES);
+
+    uint8_t payload[255];
+
+    uint8_t i = 0;
+    for (i = 0; i < payload_size; i++) {
+        // FifoAddrPtr is incremented automatically (per datasheet page 30)
+        uint8_t val = read_register(REG_FIFO);
+        payload[i] = val;
+    }
+
+    printf("\n\n=====\nNEW PAYLOAD RECEIVED:\n");
+    for (i = 0; i < payload_size; i++) {
+        printf("%c", payload[i]);
+    }
+    printf("\n----hex:----\n");
+    for (i = 0; i < payload_size; i++) {
+        printf("%02x", payload[i]);
+    }
+    printf("\n=====\n\n");
+    fflush(stdout);
+
+    // repeat the packet
+    lora_send_packet(payload, payload_size);
+
+    // unmask interrupts
+    write_register(REG_IRQ_FLAGS_MASK, 0x00);
+
+    // set back to RX mode since when the TX is complete, it will go to STDBY mode
+    lora_set_op_mode(OPMODE_RX_CONT);
+}
+
+
+void irq_rx_complete(uint gpio, uint32_t events) {
     gpio_acknowledge_irq(gpio, events);
+    
+    // check for a valid header and clear the flag if ok.
+    if (read_register(REG_IRQ_FLAGS) & IRQ_FLAG_VALID_HEADER) {
+        // we have received a valid header. clear flag and continue
+        write_register(REG_IRQ_FLAGS, IRQ_FLAG_VALID_HEADER);
+    } else {
+        printf("invalid header. discarding packet\n");
+        fflush(stdout);
+        return;
+    }
 
-    printf("Interrupt handled for gpio%u\n", gpio);
+    // IRQ register is "set-to-clear" so writing a 1 actually clears it.
+    write_register(REG_IRQ_FLAGS, IRQ_FLAG_RX_DONE);
 
-    lora_set_op_mode(OPMODE_STDBY);
+    // disable interrupt, repeat, reset mode, re-enable interrupt
+    gpio_set_irq_enabled(gpio, events, false);
+    lora_repeat_rx();
+    gpio_set_irq_enabled(gpio, events, true);
 }
 
 void write_register(uint8_t reg, uint8_t data) {
@@ -162,7 +278,8 @@ uint8_t read_register(uint8_t addr) {
     spi_read_blocking(SPI_PORT, 0, &buf, 1);
     cs_deselect();
 
-    printf("READ %02X\n", buf);
+    //printf("READ [%02x] = %02X (ascii %c)\n", addr, buf, buf);
+    fflush(stdout);
 
     return buf;
 }

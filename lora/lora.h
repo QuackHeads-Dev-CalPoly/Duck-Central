@@ -71,28 +71,49 @@ void lora_send_packet(uint8_t* buffer, uint8_t length);
 
 #define REG_MODEM_CONFIG_3 0x26
 #define LNA_SET_BY_AGC 0x04
-
 /******************************************************************************
  * end: Modem config registers
  *****************************************************************************/
 
 // the fifo buffer control registers
 #define REG_FIFO 0x00
+
 #define REG_FIFO_ADDR_PTR 0x0D
+
 #define REG_FIFO_TX_BASE_ADDR 0x0E
 #define DEFAULT_FIFO_TX_BASE_ADDR 0x80
+
 #define REG_FIFO_RX_BASE_ADDR 0x0F
 #define DEFAULT_FIFO_RX_BASE_ADDR 0x00
 
-#define REG_IRQ_FLAGS 0x10
+#define REG_FIFO_RX_CURRENT_ADDR 0x10
+
+#define REG_RX_NB_BYTES 0x13
+
+/******************************************************************************
+ * begin: IRQ register flags
+ *****************************************************************************/
+#define REG_IRQ_FLAGS 0x12
+#define IRQ_FLAG_RX_TIMEOUT (1<<7)
+#define IRQ_FLAG_RX_DONE (1<<6)
+#define IRQ_FLAG_PAYLOAD_CRC_ERROR (1 << 5)
+#define IRQ_FLAG_VALID_HEADER (1 << 4)
+#define IRQ_FLAG_TX_DONE (1 << 3)
+#define IRQ_FLAG_CAD_DONE (1 << 2)
+#define IRQ_FLAG_FHSS_CHANGE_CHANNEL (1 << 1)
+#define IRQ_FLAG_CAD_DETECTED 0x01
+
 #define REG_IRQ_FLAGS_MASK 0x11
+// mask values are the same as the flag values, no need to repeat them for this register.
+/******************************************************************************
+ * end: IRQ register masks
+ *****************************************************************************/
 
 // power amplifier config
 #define REG_PA_CONFIG 0x09
 #define PA_MAX_BOOST 0x8F  // 100mW (max 869.4 - 869.65)
 #define PA_LOW_BOOST 0x81
 #define PA_MED_BOOST 0x8A
-#define PA_MAX_UK 0x88  // 10mW (max 434)
 #define PA_OFF_BOOST 0x00
 #define RFO_MIN 0x00
 
@@ -106,6 +127,10 @@ void lora_send_packet(uint8_t* buffer, uint8_t length);
 #define LNA_OFF_GAIN 0x00
 
 #define REG_PAYLOAD_LENGTH 0x22
+
+#define REG_HOP_CHANNEL 0x1C
+#define RX_PAYLOAD_CRC_MASK 0b01000000
+#define RX_PAYLOAD_CRC_ON (1 << 6)
 
 /******************************************************************************
  * begin: DIO config registers

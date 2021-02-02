@@ -7,5 +7,9 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"thread": "c"
+		}
+	}
 }
