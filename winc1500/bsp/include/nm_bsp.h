@@ -70,6 +70,8 @@
   #define CONF_WINC_PRINTF printf
 #endif
 
+#define ARDUINO
+
 #define CONF_PERIPH
 
 /*!

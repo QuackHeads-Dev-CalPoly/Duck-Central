@@ -48,8 +48,8 @@
  * Pico Board pin defs for WINC1500 WiFi co-processor module:
  *  
  *  RESET, INTERRUPT, and ENABLE PINS
- *      WINC1500_RESET_PIN   - pin 2 (GP1)
  *      WINC1500_INTN_PIN    - pin 9 (GP6)
+ *      WINC1500_RESET_PIN   - pin 10 (GP7)
  *      WINC1500_CHIP_EN_PIN - not connected (tied to VCC)
  *  
  *  SPI PINS:
@@ -62,7 +62,7 @@
 
 /* RESET, INTERRUPT, and ENABLE GPIO Pin Macros */
 #if !defined(WINC1500_RESET_PIN)
-  #define WINC1500_RESET_PIN  1
+  #define WINC1500_RESET_PIN  7
 #endif
 #if !defined(WINC1500_INTN_PIN)
   #define WINC1500_INTN_PIN   6
