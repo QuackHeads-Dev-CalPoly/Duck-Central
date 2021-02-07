@@ -22,7 +22,9 @@ project(duck C CXX)
 # Initialise the Pico SDK
 pico_sdk_init()
 
-# Add executable. Default name is the project name, version 0.1
+set( DUCK_LORA_COMMON 
+        ${PROJECT_SOURCE_DIR}/lora/lora.c
+        )
 
 set( DUCK_WIFI_COMMON 
         ${PROJECT_SOURCE_DIR}/winc1500/bsp/source/nm_bsp_rp2040.c
@@ -61,10 +63,12 @@ add_compile_definitions(VERSION_STR=${PROJECT_VER_STR})
 add_executable(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/duck_chip_info_and_scan_exp.cpp ${DUCK_WIFI_COMMON})
 add_executable(duck_simple_web_server  ${PROJECT_SOURCE_DIR}/duck_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
 add_executable(duck_ap_simple_web_server  ${PROJECT_SOURCE_DIR}/duck_ap_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
+add_executable(duck_ap_gps_lora_demo_1 ${PROJECT_SOURCE_DIR}/duck_ap_gps_lora_demo_1.cpp ${DUCK_WIFI_COMMON} ${DUCK_LORA_COMMON})
 
 include_directories(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_ap_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
+include_directories(duck_ap_gps_lora_demo_1 ${PROJECT_SOURCE_DIR}/lora)
 
 pico_set_program_name(duck_chip_info_and_scan "duck_info_scan")
 pico_set_program_version(duck_chip_info_and_scan ${PROJECT_VER_STR})
@@ -75,14 +79,19 @@ pico_set_program_version(duck_simple_web_server ${PROJECT_VER_STR})
 pico_set_program_name(duck_ap_simple_web_server "duck_webserver")
 pico_set_program_version(duck_ap_simple_web_server ${PROJECT_VER_STR})
 
+pico_set_program_name(duck_ap_gps_lora_demo_1 "duck_ap_gps_lora_demo_1")
+pico_set_program_version(duck_ap_gps_lora_demo_1 ${PROJECT_VER_STR})
+
 pico_enable_stdio_usb(duck_chip_info_and_scan 1)
 pico_enable_stdio_usb(duck_simple_web_server 1)
 pico_enable_stdio_usb(duck_ap_simple_web_server 1)
+pico_enable_stdio_usb(duck_ap_gps_lora_demo_1 1)
 
 # Add the standard library to the build
 target_link_libraries(duck_chip_info_and_scan pico_stdlib)
 target_link_libraries(duck_simple_web_server pico_stdlib)
 target_link_libraries(duck_ap_simple_web_server pico_stdlib)
+target_link_libraries(duck_ap_gps_lora_demo_1 pico_stdlib)
 
 # Add any user reuqested libraries
 target_link_libraries(duck_chip_info_and_scan
@@ -112,6 +121,16 @@ target_link_libraries(duck_ap_simple_web_server
         pico_runtime
         )
 
+target_link_libraries(duck_ap_gps_lora_demo_1
+        hardware_uart
+        hardware_i2c
+        hardware_spi
+        pico_mem_ops
+        pico_malloc
+        pico_runtime
+        )
+
 pico_add_extra_outputs(duck_chip_info_and_scan)
 pico_add_extra_outputs(duck_simple_web_server)
 pico_add_extra_outputs(duck_ap_simple_web_server)
+pico_add_extra_outputs(duck_ap_gps_lora_demo_1)
