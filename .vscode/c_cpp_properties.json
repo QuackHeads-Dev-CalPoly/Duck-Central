@@ -1,19 +1,19 @@
 {
-  "configurations": [
-      {
-          "name": "Mac",
-          "includePath": [
-              "${workspaceFolder}/**"
-          ],
-          "defines": [],
-          "macFrameworkPath": [],
-          "compilerPath": "/usr/local/bin/gcc-10",
-          "cStandard": "gnu17",
-          "cppStandard": "gnu++14",
-          "intelliSenseMode": "gcc-x64",
-          "configurationProvider": "ms-vscode.cmake-tools",
-          "compileCommands": "${workspaceFolder}/build/compile_commands.json"
-      }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/winc1500"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
 }
