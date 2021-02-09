@@ -9,6 +9,10 @@ extern "C"
 
 #include "WiFi101.h"
 
+/*
+    Make sure wiring is correct 
+*/
+
 void print_mac_address(uint8_t*);
 
 #define LED_PIN 25
