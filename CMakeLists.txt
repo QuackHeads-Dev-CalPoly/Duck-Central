@@ -65,12 +65,13 @@ set( DUCK_WIFI_COMMON
 
 add_compile_definitions(VERSION_STR=${PROJECT_VER_STR})
 
-add_executable(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/duck_chip_info_and_scan_exp.cpp ${DUCK_WIFI_COMMON})
-add_executable(duck_simple_web_server  ${PROJECT_SOURCE_DIR}/duck_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
-add_executable(duck_ap_simple_web_server  ${PROJECT_SOURCE_DIR}/duck_ap_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
-add_executable(duck_ap_gps_lora_demo_1 ${PROJECT_SOURCE_DIR}/duck_ap_gps_lora_demo_1.cpp ${DUCK_WIFI_COMMON} ${DUCK_LORA_COMMON})
-add_executable(duck_simple_gps_test ${PROJECT_SOURCE_DIR}/duck_simple_gps_test.cpp ${DUCK_GPS_COMMON})
-add_executable(duck_simple_blink_log ${PROJECT_SOURCE_DIR}/duck_simple_blink_out.c)
+add_executable(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_chip_info_and_scan_exp.cpp ${DUCK_WIFI_COMMON})
+add_executable(duck_simple_web_server  ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
+add_executable(duck_ap_simple_web_server  ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_ap_simple_web_server_exp.cpp ${DUCK_WIFI_COMMON})
+add_executable(duck_ap_gps_lora_demo_1 ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_ap_gps_lora_demo_1.cpp ${DUCK_WIFI_COMMON} ${DUCK_LORA_COMMON})
+add_executable(duck_simple_gps_test ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_simple_gps_test.cpp ${DUCK_GPS_COMMON})
+add_executable(duck_simple_blink_log ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_simple_blink_out.c)
+add_executable(duck_adc_temp_and_bat_sense ${PROJECT_SOURCE_DIR}/wifi_and_misc_examples/duck_adc_temp_and_bat_sense.cpp)
 
 include_directories(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
@@ -93,8 +94,11 @@ pico_set_program_version(duck_ap_gps_lora_demo_1 ${PROJECT_VER_STR})
 pico_set_program_name(duck_simple_gps_test "duck_simple_gps_test")
 pico_set_program_version(duck_simple_gps_test ${PROJECT_VER_STR})
 
-pico_set_program_name(duck_simple_gps_test "duck_simple_gps_test")
+pico_set_program_name(duck_simple_blink_log "duck_simple_blink_log")
 pico_set_program_version(duck_simple_blink_log ${PROJECT_VER_STR})
+
+pico_set_program_name(duck_adc_temp_and_bat_sense "duck_adc_temp_and_bat_sense")
+pico_set_program_version(duck_adc_temp_and_bat_sense ${PROJECT_VER_STR})
 
 # Enable stdout to USB serial
 pico_enable_stdio_usb(duck_chip_info_and_scan 1)
@@ -103,6 +107,7 @@ pico_enable_stdio_usb(duck_ap_simple_web_server 1)
 pico_enable_stdio_usb(duck_ap_gps_lora_demo_1 1)
 pico_enable_stdio_usb(duck_simple_gps_test 1)
 pico_enable_stdio_usb(duck_simple_blink_log 1)
+pico_enable_stdio_usb(duck_adc_temp_and_bat_sense 1)
 
 # Disable stdout to UART0
 pico_enable_stdio_uart(duck_chip_info_and_scan 0)
@@ -111,6 +116,7 @@ pico_enable_stdio_uart(duck_ap_simple_web_server 0)
 pico_enable_stdio_uart(duck_ap_gps_lora_demo_1 0)
 pico_enable_stdio_uart(duck_simple_gps_test 0)
 pico_enable_stdio_uart(duck_simple_blink_log 0)
+pico_enable_stdio_uart(duck_adc_temp_and_bat_sense 0)
 
 # Add the standard library to the build
 target_link_libraries(duck_chip_info_and_scan pico_stdlib)
@@ -119,6 +125,7 @@ target_link_libraries(duck_ap_simple_web_server pico_stdlib)
 target_link_libraries(duck_ap_gps_lora_demo_1 pico_stdlib)
 target_link_libraries(duck_simple_gps_test pico_stdlib)
 target_link_libraries(duck_simple_blink_log pico_stdlib)
+target_link_libraries(duck_adc_temp_and_bat_sense pico_stdlib)
 
 # Add any user reuqested libraries
 target_link_libraries(duck_chip_info_and_scan
@@ -165,9 +172,16 @@ target_link_libraries(duck_simple_gps_test
         hardware_dma
         )
 
+target_link_libraries(duck_adc_temp_and_bat_sense
+        hardware_gpio
+        hardware_adc
+        hardware_uart
+        )
+
 pico_add_extra_outputs(duck_chip_info_and_scan)
 pico_add_extra_outputs(duck_simple_web_server)
 pico_add_extra_outputs(duck_ap_simple_web_server)
 pico_add_extra_outputs(duck_ap_gps_lora_demo_1)
 pico_add_extra_outputs(duck_simple_gps_test)
 pico_add_extra_outputs(duck_simple_blink_log)
+pico_add_extra_outputs(duck_adc_temp_and_bat_sense)
