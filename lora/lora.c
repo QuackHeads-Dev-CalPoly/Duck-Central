@@ -12,7 +12,7 @@
 #define PIN_MOSI    11
 #define PIN_CS      13
 #define PIN_SCK     10
-#define PIN_DIO0    22  // used for TX/RX complete
+#define PIN_DIO0    14  // used for TX/RX complete
 
 #define LORA_FREQUENCY  FREQ_915
 #define LORA_BW         BANDWIDTH_125K
@@ -84,8 +84,6 @@ void init_modem(void) {
 void set_frequency(enum frequency freq) { 
     // frequency can only be set in sleep mode
     uint8_t original_op_mode = read_register(REG_OPMODE);
-    printf("original opmode %u\n", original_op_mode);
-    fflush(stdout);
 
     lora_set_op_mode(OPMODE_SLEEP);
 
@@ -124,8 +122,7 @@ void lora_set_op_mode(uint8_t mode) {
  * See: datasheet page 75
  **/
 void lora_send_packet(uint8_t* buffer, uint8_t length) {
-    printf("\n\n-----------BEGIN lora_send_packet()------------\n");
-    printf("buffer is (size=%u):\n", length);
+    printf("sending packet.\nbuffer is (size=%u):\n", length);
     uint8_t i = 0;
     for (i = 0; i < length; i++) {
         printf("%02x", buffer[i]);
@@ -151,9 +148,7 @@ void lora_send_packet(uint8_t* buffer, uint8_t length) {
     cs_deselect();
 
     // put it into tx mode
-    printf("beginning TX\n");
     lora_set_op_mode(OPMODE_TX);
-    printf("-----------END lora_send_packet()------------\n\n\n");
 }
 
 /**
@@ -208,10 +203,6 @@ void lora_repeat_rx(void) {
     }
 
     printf("\n\n=====\nNEW PAYLOAD RECEIVED:\n");
-    for (i = 0; i < payload_size; i++) {
-        printf("%c", payload[i]);
-    }
-    printf("\n----hex:----\n");
     for (i = 0; i < payload_size; i++) {
         printf("%02x", payload[i]);
     }
