@@ -4,7 +4,10 @@ extern "C"
     #include "pico/stdlib.h"
     #include "hardware/uart.h"
     #include "driver/source/nmasic.h"
+    #include "driver/include/m2m_periph.h"
     #include "lora.h"
+    #include "batt_pwr_and_temp_sensor.h"
+    #include "index.h"
 }
 
 #include "WiFi101.h"
@@ -28,6 +31,9 @@ int main() {
     gpio_set_dir(LED_PIN, GPIO_OUT);
     uint8_t led_val = 1;
     gpio_put(LED_PIN, led_val);
+
+    // Init ADC temp and battery library ( Only for quacker board )
+    init_batt_pwr_and_temp_sensor();
 
     printf("Setting up lora...\n");
     lora_setup();
@@ -80,10 +86,12 @@ int main() {
                 WiFi.APClientMacAddress(remote_mac);
 
                 printf("Device connected to AP, MAC address: ");
+                m2m_periph_gpio_set_val(M2M_PERIPH_GPIO4, 0);
                 print_mac_address(remote_mac);
             }
             else
             {
+                server.begin(); // Added this. Everytime a client disconnected the server needs to restart
                 printf("Device disconnected from AP\n");
             }
         }
@@ -105,14 +113,18 @@ int main() {
                     {
                         if(curr_char == 0)
                         {
-                            /* Header */
+                            
+                            // /* Header */
                             client.write((uint8_t*) &http_header, (size_t) 16);
-                            client.write((uint8_t*) &content_header, (size_t) 39);
+                            // client.write((uint8_t*) &content_header, (size_t) 39);
                             client.write('\n');
 
-                            /* Content */
-                            client.write((uint8_t*) &content_1, (size_t) 56);
-                            client.write((uint8_t*) &content_2, (size_t) 57);
+                            // /* Content */
+                            // client.write((uint8_t*) &content_1, (size_t) 56);
+                            // client.write((uint8_t*) &content_2, (size_t) 57);
+                            // client.write('\n');
+                            
+                            client.write((uint8_t*) MAIN_page, (size_t) 5170);
                             client.write('\n');
 
                             break;
@@ -130,7 +142,8 @@ int main() {
                     {
                         gpio_put(LED_PIN, 0);
                         lora_send_packet((uint8_t*) msg_low, strlen(msg_low));
-                        sleep_ms(500);
+                        printf("VBUS: %f\n", get_bus_voltage_float());
+                        printf("VBAT: %f\n", get_batt_voltage_float());
                     }
 
                     if(currLine[0] == 'G' && currLine[1] == 'E' &&
@@ -139,7 +152,8 @@ int main() {
                     {
                         gpio_put(LED_PIN, 1);
                         lora_send_packet((uint8_t*) msg_high, strlen(msg_high));
-                        sleep_ms(500);
+                        printf("VBUS: %f\n", get_bus_voltage_float());
+                        printf("VBAT: %f\n", get_batt_voltage_float());
                     }
 
                 }

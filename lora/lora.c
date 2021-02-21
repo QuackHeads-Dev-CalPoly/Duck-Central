@@ -7,12 +7,12 @@
 
 #define SPI_DATA_BITS 8
 
-#define SPI_PORT    spi1
-#define PIN_MISO    12
-#define PIN_MOSI    11
-#define PIN_CS      13
-#define PIN_SCK     10
-#define PIN_DIO0    14  // used for TX/RX complete
+#define SPI_PORT    spi0
+#define PIN_MISO    4
+#define PIN_MOSI    7
+#define PIN_CS      5
+#define PIN_SCK     6
+#define PIN_DIO0    3  // used for TX/RX complete
 
 #define LORA_FREQUENCY  FREQ_915
 #define LORA_BW         BANDWIDTH_125K

@@ -13,8 +13,8 @@
 
 #define MAX_NMEA_FRAME_SIZE 81
 
-#define UART_GPS uart1
-#define UART_RX_PIN 5
+#define UART_GPS uart0
+#define UART_RX_PIN 17
 
 #define INDENT_SPACES "  "
 
