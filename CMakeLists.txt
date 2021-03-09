@@ -73,6 +73,7 @@ add_executable(duck_simple_gps_test ${PROJECT_SOURCE_DIR}/test/duck_simple_gps_t
 add_executable(duck_simple_blink_log ${PROJECT_SOURCE_DIR}/test/duck_simple_blink_out.c)
 add_executable(duck_adc_temp_and_bat_sense ${PROJECT_SOURCE_DIR}/test/duck_adc_temp_and_bat_sense.cpp)
 add_executable(duck_lora_repeater ${PROJECT_SOURCE_DIR}/test/duck_lora_repeater.c ${DUCK_LORA_COMMON})
+add_executable(duck_range_test ${PROJECT_SOURCE_DIR}/test/duck_range_test.c ${DUCK_LORA_COMMON} ${DUCK_GPS_COMMON})
 
 include_directories(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
@@ -80,6 +81,7 @@ include_directories(duck_ap_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_ap_gps_lora_demo_1 ${PROJECT_SOURCE_DIR}/lora ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_simple_gps_test ${PROJECT_SOURCE_DIR}/gps)
 include_directories(duck_lora_repeater ${PROJECT_SOURCE_DIR}/lora)
+include_directories(duck_range_test ${PROJECT_SOURCE_DIR}/lora ${PROJECT_SOURCE_DIR}/gps)
 
 pico_set_program_name(duck_chip_info_and_scan "duck_info_scan")
 pico_set_program_version(duck_chip_info_and_scan ${PROJECT_VER_STR})
@@ -105,6 +107,9 @@ pico_set_program_version(duck_adc_temp_and_bat_sense ${PROJECT_VER_STR})
 pico_set_program_name(duck_lora_repeater "duck_lora_repeater")
 pico_set_program_version(duck_lora_repeater ${PROJECT_VER_STR})
 
+pico_set_program_name(duck_range_test "duck_range_test")
+pico_set_program_version(duck_range_test ${PROJECT_VER_STR})
+
 # Enable stdout to USB serial
 pico_enable_stdio_usb(duck_chip_info_and_scan 1)
 pico_enable_stdio_usb(duck_simple_web_server 1)
@@ -114,6 +119,7 @@ pico_enable_stdio_usb(duck_simple_gps_test 1)
 pico_enable_stdio_usb(duck_simple_blink_log 1)
 pico_enable_stdio_usb(duck_adc_temp_and_bat_sense 1)
 pico_enable_stdio_usb(duck_lora_repeater 1)
+pico_enable_stdio_usb(duck_range_test 1)
 
 # Disable stdout to UART0
 pico_enable_stdio_uart(duck_chip_info_and_scan 0)
@@ -124,6 +130,7 @@ pico_enable_stdio_uart(duck_simple_gps_test 0)
 pico_enable_stdio_uart(duck_simple_blink_log 0)
 pico_enable_stdio_uart(duck_adc_temp_and_bat_sense 0)
 pico_enable_stdio_uart(duck_lora_repeater 0)
+pico_enable_stdio_uart(duck_range_test 0)
 
 # Add the standard library to the build
 target_link_libraries(duck_chip_info_and_scan pico_stdlib)
@@ -134,6 +141,7 @@ target_link_libraries(duck_simple_gps_test pico_stdlib)
 target_link_libraries(duck_simple_blink_log pico_stdlib)
 target_link_libraries(duck_adc_temp_and_bat_sense pico_stdlib)
 target_link_libraries(duck_lora_repeater pico_stdlib)
+target_link_libraries(duck_range_test pico_stdlib)
 
 # Add any user reuqested libraries
 target_link_libraries(duck_chip_info_and_scan
@@ -190,6 +198,12 @@ target_link_libraries(duck_lora_repeater
         hardware_spi
         )
 
+target_link_libraries(duck_range_test
+        hardware_gpio
+        hardware_spi
+        hardware_uart
+        )
+
 pico_add_extra_outputs(duck_chip_info_and_scan)
 pico_add_extra_outputs(duck_simple_web_server)
 pico_add_extra_outputs(duck_ap_simple_web_server)
@@ -198,3 +212,4 @@ pico_add_extra_outputs(duck_simple_gps_test)
 pico_add_extra_outputs(duck_simple_blink_log)
 pico_add_extra_outputs(duck_adc_temp_and_bat_sense)
 pico_add_extra_outputs(duck_lora_repeater)
+pico_add_extra_outputs(duck_range_test)

@@ -2,5 +2,9 @@
   "cmake.environment": {
     "PICO_SDK_PATH": "../../pico-sdk"
   },
-  "cmake.configureOnOpen": false
+  "cmake.configureOnOpen": false,
+  "files.associations": {
+    "chrono": "c",
+    "__locale": "c"
+  }
 }
