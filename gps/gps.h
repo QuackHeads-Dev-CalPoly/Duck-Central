@@ -7,7 +7,7 @@ void setup_gps(void);
 
 void setup_gps_temp(void);
 
-void read_gps_full(void);
+void read_gps_full(char*, int);
 
 /**********************************************************
  * BEGIN: GGA definition
@@ -91,4 +91,4 @@ typedef struct gga {
 /**********************************************************
  * END: VTG definition
  **********************************************************/
-#endif
+#endif    //char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};

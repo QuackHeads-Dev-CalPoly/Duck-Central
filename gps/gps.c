@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "hardware/uart.h"
+#include "hardware/dma.h"
 #include "pico/stdlib.h"
 #include "minmea.h"
 
@@ -18,9 +19,9 @@
 
 #define INDENT_SPACES "  "
 
-
 void get_fields(char** fields, char* head);
 void print_gga(char** fields);
+    char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
 
 void setup_gps(void) {
     uart_init(UART_GPS, GPS_BAUD_RATE);
@@ -32,12 +33,12 @@ void setup_gps_temp(void) {
     gpio_set_function(1, GPIO_FUNC_UART); //UART0_RX GP1
 }
 
-void read_gps_full(void) {
-    char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
+void read_gps_full( char* buff, int dma_channel ) {
+    //char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
 
-    while (1) {
-        printf("\n\n\n\n");
-        uart_read_blocking(UART_GPS, buff, sizeof(buff));
+    while ( !dma_channel_is_busy(dma_channel) ) {
+        //printf("\n\n\n\n");
+        //uart_read_blocking(UART_GPS, buff, sizeof(buff));
 
         printf(":::::::::::::::::::::::::::::::::::\n{\n %s \n}\n:::::::::::::::::::::::::::::::::::", buff);
 

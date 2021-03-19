@@ -20,6 +20,13 @@ void print_mac_address(uint8_t*);
 
 #define LED_PIN 25
 
+int mess_send_flag = 0;
+int mess_cpy_flag = 0;
+char mess_line[255];
+int led_off_flag = 0;
+int led_on_flag = 0;
+int bat_volt_flag = 0;
+
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
@@ -32,11 +39,14 @@ int main() {
     uint8_t led_val = 1;
     gpio_put(LED_PIN, led_val);
 
+    memset(&mess_line, '\0', 255);
+    printf("%s", MAIN_page);
+
     // Init ADC temp and battery library ( Only for quacker board )
     init_batt_pwr_and_temp_sensor();
 
     printf("Setting up lora...\n");
-    lora_setup();
+    lora_setup(LOGGING_LIGHT);
     sleep_ms(1000);
     char msg_setup[] = "LoRa radio setup.";
     char msg_low[] = "GET /L. fshore!";
@@ -59,7 +69,7 @@ int main() {
         }
     }
 
-    sleep_ms(1000 * 10); // Wait for 10 seconds for AP creation
+    //sleep_ms(1000 * 10); // Wait for 10 seconds for AP creation
 
     server.begin();
     printf("SSID: %s | Local IP (Reversed and HEX): %x\n", WiFi.SSID(), WiFi.localIP());
@@ -69,10 +79,17 @@ int main() {
     char content_header[]
         = "Content-type: text/html; charset=UTF-8\n";
 
+
     char content_1[]
-        = "Click <a href=\"/H\">here</a> turn the LED on pin 9 on<br>";
+        = "Click <a href=\"/H\">here</a> turn the LED on<br>";
     char content_2[]
-        =  "Click <a href=\"/L\">here</a> turn the LED on pin 9 off<br>";
+        = "Click <a href=\"/L\">here</a> turn the LED off<br>";
+    
+    char content_3[]
+        = "Click <a href=\"/bat\">here</a> to send battery voltage<br>";
+
+    char form_content[]
+        = "<!DOCTYPE html><html><head><title>ClusterDuck Protocol</title></head><body><h2 class=\"\">You are connected to a ClusterDuck</h2><h3>Send message below</h3><div><form action=\"/send\" method=\"GET\" enctype=\"text/plain\"><input id=\"message\" type=\"text\" name=\"message\" /><input type=\"submit\"/></form></div><div>Click <a href=\"/bat\">here</a> to send battery voltage<br></div><div>Click <a href=\"/L\">here</a> turn the LED off<br></div><div>Click <a href=\"/H\">here</a> turn the LED on<br></div></body></html>";
 
     while( 1 )
     {
@@ -96,6 +113,60 @@ int main() {
             }
         }
 
+        if( mess_send_flag )
+        {
+            printf("Send message\n");
+            printf("Message line: %s\n", mess_line);
+            char lora_message[255];
+            int i;
+            int j = 0;
+            for( i = 18; i < 255; i++ )
+            {
+                if( mess_line[i] == '+' )
+                    lora_message[j++] = ' ';
+                else if ( mess_line[i] == ' ' ) 
+                {
+                    lora_message[j] = '\0'; // End message string
+                    break;
+                }
+                else
+                    lora_message[j++] = mess_line[i];
+            }
+            printf("Lora Message: %s\n", lora_message);
+            lora_send_packet((uint8_t *) lora_message, j);
+            mess_send_flag = 0;
+            mess_cpy_flag = 0;
+        }
+
+        if( led_off_flag ) 
+        {
+            gpio_put(LED_PIN, 0);
+            lora_send_packet((uint8_t*) msg_low, strlen(msg_low));
+            led_off_flag = 0;
+        }
+
+        if( led_on_flag )
+        {
+            gpio_put(LED_PIN, 1);
+            lora_send_packet((uint8_t*) msg_high, strlen(msg_high));
+            led_on_flag = 0;
+        }
+
+        if( bat_volt_flag )
+        {
+            char charged[] = "Battery is charged";
+            char charging[] = "Battery is charging";
+            char not_full[] = "Battery not full";
+            if(get_batt_voltage_float() > 4.1)
+                lora_send_packet((uint8_t*) charged, 19);
+            if(get_batt_voltage_float() < 4.1 && get_bus_voltage_float() > 4.0)
+                lora_send_packet((uint8_t*) charging, 20);
+            else
+                lora_send_packet((uint8_t*) not_full, 17);
+
+            bat_volt_flag = 0;
+        }
+
         WiFiClient client = server.available(); // listen for incoming clients
 
         if(client)
@@ -116,19 +187,22 @@ int main() {
                             
                             // /* Header */
                             client.write((uint8_t*) &http_header, (size_t) 16);
-                            // client.write((uint8_t*) &content_header, (size_t) 39);
+                            client.write((uint8_t*) &content_header, (size_t) 39);
                             client.write('\n');
 
-                            // /* Content */
-                            // client.write((uint8_t*) &content_1, (size_t) 56);
-                            // client.write((uint8_t*) &content_2, (size_t) 57);
-                            // client.write('\n');
-                            
-                            client.write((uint8_t*) MAIN_page, (size_t) 5170);
-                            client.write('\n');
+                            client.write((uint8_t*) &MAIN_page, (size_t) 1400);
+                            client.write((uint8_t*) &MAIN_page[1400], (size_t) 1400);
+                            client.write((uint8_t*) &MAIN_page[2800], (size_t) 1400);
+                            client.write((uint8_t*) &MAIN_page[4200], (size_t) 563);
 
                             break;
                         } else {
+                            printf("C %s\n", currLine);
+                            if(mess_send_flag && !mess_cpy_flag)
+                            {
+                                memcpy(&mess_line, &currLine, 255);
+                                mess_cpy_flag = 1;
+                            }
                             memset(&currLine, '\0', 255);
                             curr_char = 0;
                         }
@@ -138,22 +212,33 @@ int main() {
 
                     if(currLine[0] == 'G' && currLine[1] == 'E' &&
                         currLine[2] == 'T' && currLine[3] == ' ' &&
+                        currLine[4] == '/' && currLine[5] == 's' &&
+                        currLine[6] == 'e' && currLine[7] == 'n' &&
+                        currLine[8] == 'd')
+                    {
+                        mess_send_flag = 1;
+                    }
+
+                    if(currLine[0] == 'G' && currLine[1] == 'E' &&
+                        currLine[2] == 'T' && currLine[3] == ' ' &&
                         currLine[4] == '/' && currLine[5] == 'L')
                     {
-                        gpio_put(LED_PIN, 0);
-                        lora_send_packet((uint8_t*) msg_low, strlen(msg_low));
-                        printf("VBUS: %f\n", get_bus_voltage_float());
-                        printf("VBAT: %f\n", get_batt_voltage_float());
+                        led_off_flag = 1;
                     }
 
                     if(currLine[0] == 'G' && currLine[1] == 'E' &&
                         currLine[2] == 'T' && currLine[3] == ' ' &&
                         currLine[4] == '/' && currLine[5] == 'H')
                     {
-                        gpio_put(LED_PIN, 1);
-                        lora_send_packet((uint8_t*) msg_high, strlen(msg_high));
-                        printf("VBUS: %f\n", get_bus_voltage_float());
-                        printf("VBAT: %f\n", get_batt_voltage_float());
+                        led_on_flag = 1;
+                    }
+
+                    if(currLine[0] == 'G' && currLine[1] == 'E' &&
+                        currLine[2] == 'T' && currLine[3] == ' ' && 
+                        currLine[4] == '/' && currLine[5] == 'b' &&
+                        currLine[6] == 'a' && currLine[7] == 't')
+                    {
+                        bat_volt_flag = 1;
                     }
 
                 }

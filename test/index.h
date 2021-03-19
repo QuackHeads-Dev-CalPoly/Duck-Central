@@ -135,23 +135,15 @@ char MAIN_page[] = R"=====(<!DOCTYPE html>
         <div class="content body" id="formContent">
             <h3>Fill out the form below to submit information to the ClusterDuck network.</h3>
             <div id="form">
-                <form action="/formSubmit" method="post">
+                <form action="/send" method="GET" enctype="text/plain">
                     <label for="status">How are you?</label><br />
                     <textarea class="textbox comments textbox-full" name="message" id="commentsInput" cols="30" rows="2"></textarea>
                     <input type="submit" class="sendReportBtn" value="Submit" />
                 </form>
+                <input type="submit" class="sendReportBtn" value="Send Location" />
                 <h6 style="font-size: 10px; text-align: center;margin-top: 24px;">Powered by the ClusterDuck Protocol</h6>
             </div>
         </div>
-        <div id="bodySent" class="body off sent">
-            <div class="c">
-                <div class="gps"><h4>Message Sent</h4><h5 id="dateNow">March 13, 2019 @ 1:00 PM</h5><p>Your message ID#: XXXXXX</p></div>
-                <p class="disclaimer">If your situation changes, please send another update.</p>
-                <div id="bupdate" class="b update">Send Update</div>
-            </div>
-        </div>
-      <!-- Run javascript actions here -->
-      <script type="text/javascript"></script>
     </body>
 </html>\n
 )=====";
