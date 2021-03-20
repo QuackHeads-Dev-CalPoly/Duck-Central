@@ -15,8 +15,6 @@ typedef struct {
 void setup_gps(void);
 void setup_gps_temp(void);
 
-void read_gps_full(char*, int);
-
 /**********************************************************
  * BEGIN: GGA definition
  **********************************************************/

@@ -152,12 +152,10 @@ void read_gps_blocking(GPSData* gps_data) {
 void read_gps_full(void) {
     char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
 
-    while ( !dma_channel_is_busy(dma_channel) ) {
-        //printf("\n\n\n\n");
-        //uart_read_blocking(UART_GPS, buff, sizeof(buff));
-
+    while (1) {
+        printf("\n\n\n\n");
+        uart_read_blocking(UART_GPS, buff, sizeof(buff));
         printf(":::::::::::::::::::::::::::::::::::\n{\n %s \n}\n:::::::::::::::::::::::::::::::::::", buff);
-
         char* sentence = buff;
         char* end = buff;
         while (NULL != (sentence = strsep(&end, "\r\n"))) {
@@ -183,7 +181,6 @@ void read_gps_full(void) {
                             "$xxRMC sentence is not parsed\n");
                     }
                 } break;
-
                 case MINMEA_SENTENCE_GGA: {
                     struct minmea_sentence_gga frame;
                     if (minmea_parse_gga(&frame, sentence)) {
@@ -196,23 +193,18 @@ void read_gps_full(void) {
                         printf(INDENT_SPACES "$xxGGA sentence is not parsed\n");
                     }
                 } break;
-
                 case MINMEA_SENTENCE_GSV: {
                     // ignore
                 } break;
-
                 case MINMEA_SENTENCE_VTG: {
                     // ignore
                 } break;
-
                 case MINMEA_SENTENCE_GLL: {
                     // ignore
                 } break;
-
                 case MINMEA_INVALID: {
                     //printf(INDENT_SPACES "$xxxxx sentence is not valid (%02x%02x)\n", sentence[0], sentence[1]);
                 } break;
-
                 default: {
                     //printf(INDENT_SPACES "$xxxxx sentence is not parsed(%02x%02x)\n", sentence[0], sentence[1]);
                 } break;

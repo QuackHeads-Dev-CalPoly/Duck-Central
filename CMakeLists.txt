@@ -80,6 +80,7 @@ add_executable(duck_adc_temp_and_bat_sense ${PROJECT_SOURCE_DIR}/test/duck_adc_t
 add_executable(duck_lora_repeater ${PROJECT_SOURCE_DIR}/test/duck_lora_repeater.c ${DUCK_LORA_COMMON})
 add_executable(duck_lora_message_logger ${PROJECT_SOURCE_DIR}/test/duck_lora_message_logger.cpp ${DUCK_LORA_COMMON})
 add_executable(duck_gps_dma ${PROJECT_SOURCE_DIR}/test/duck_gps_dma.cpp ${DUCK_GPS_COMMON})
+add_executable(duck_range_test ${PROJECT_SOURCE_DIR}/test/duck_range_test.c)
 
 include_directories(duck_chip_info_and_scan ${PROJECT_SOURCE_DIR}/winc1500)
 include_directories(duck_simple_web_server ${PROJECT_SOURCE_DIR}/winc1500)
