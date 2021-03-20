@@ -24,7 +24,7 @@ int main() {
 
     while( status != WL_CONNECTED )
     {
-        printf("Attempting to connect to snottberg\n");
+        printf("Attempting to connect to SSID\n");
 
         status = WiFi.begin(/*WIFI_SSID*/, /*PASSWORD*/);
         sleep_ms(1000 * 10); // Wait 10 seconds for connection
