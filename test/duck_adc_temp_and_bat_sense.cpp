@@ -4,27 +4,24 @@ extern "C"
     #include "pico/stdlib.h"
     #include "hardware/gpio.h"
     #include "hardware/adc.h"
-    #include "batt_pwr_and_temp_sensor.h"
 }
-
-#define LED_PIN 25
 
 int main()
 {
     stdio_init_all();
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    uint8_t led_val = 1;
-    gpio_put(LED_PIN, led_val);
 
-    init_batt_pwr_and_temp_sensor();
+    adc_init();
+    adc_set_temp_sensor_enabled(true);
+    adc_select_input(4);
 
     while(1) 
     {
-        (led_val > 0) ? led_val = 0 : led_val = 1;
-        gpio_put(LED_PIN, led_val);
-        printf("VBUS: %f\n", get_bus_voltage_float());
-        printf("VBAT: %f\n", get_batt_voltage_float());
+        const float conversion_factor = 3.3f / (1 << 12);
+        uint16_t result = adc_read();
+        float conversion = result * conversion_factor;
+        float temp = 27.0f- (conversion - 0.706f)/(0.001721f);
+        printf("Raw value: 0x%03x, voltage: %f V\n", result, conversion);
+        printf("Temp: %f\n", temp);
         sleep_ms(500);
     }
 

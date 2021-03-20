@@ -36,19 +36,8 @@ static inline void cs_select(void);
 static inline void cs_deselect(void);
 
 
-int logging_set = LOGGING_VERBOSE;
-
-void lora_setup(int logging) {
+void lora_setup(void) {
     printf("\nInitializing LoRa...\n");
-
-    if(logging == LOGGING_VERBOSE)
-        printf("LoRa Logging set at: VERBOSE\n");
-    else if(logging == LOGGING_LIGHT)
-        printf("LoRa Logging set at: LIGHT\n");
-    else
-        printf("LoRa Logging set at: NONE\n");
-
-    logging_set = logging;
 
     init_io();
 
@@ -109,22 +98,19 @@ void set_frequency(enum frequency freq) {
 void lora_set_op_mode(uint8_t mode) {
     switch (mode) {
         case OPMODE_TX: {
-            if(logging_set == LOGGING_VERBOSE)
-                printf("setting to TX single\n");
+            printf("setting to TX single\n");
             // Low noise amplifier off for transmissions to save power
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_MAX_BOOST);
         } break;
 
         case OPMODE_RX_CONT: {
-            if(logging_set == LOGGING_VERBOSE)
-                printf("setting to RX Continuous\n");
+            printf("setting to RX Continuous\n");
             write_register(REG_LNA, LNA_MAX_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
         } break;
 
         default:
-            if(logging_set == LOGGING_VERBOSE)
             printf("setting to mode=%u\n", mode);
             break;
     }
@@ -136,12 +122,10 @@ void lora_set_op_mode(uint8_t mode) {
  * See: datasheet page 75
  **/
 void lora_send_packet(uint8_t* buffer, uint8_t length) {
-    if(logging_set == LOGGING_VERBOSE)
-        printf("sending packet.\nbuffer is (size=%u):\n", length);
+    printf("sending packet.\nbuffer is (size=%u):\n", length);
     uint8_t i = 0;
     for (i = 0; i < length; i++) {
-        if(logging_set == LOGGING_VERBOSE)
-            printf("%02x", buffer[i]);
+        printf("%02x", buffer[i]);
     }
     printf("\n");
 
@@ -218,39 +202,15 @@ void lora_repeat_rx(void) {
         payload[i] = val;
     }
 
-    if(logging_set == LOGGING_VERBOSE)
-    {
-        printf("\n\n=====\nNEW PAYLOAD RECEIVED:\n");
-        for (i = 0; i < payload_size; i++) {
-            printf("%02x", payload[i]);
-        }
-        printf("\n=====\n\n");
-        for (i = 0; i < payload_size; i++) {
-            printf("%c", payload[i]);
-        }
-        printf("\n=========\n");
-        fflush(stdout);
+    printf("\n\n=====\nNEW PAYLOAD RECEIVED:\n");
+    for (i = 0; i < payload_size; i++) {
+        printf("%02x", payload[i]);
     }
-    else if(logging_set == LOGGING_LIGHT)
-    {
-        printf("===========================\n");
-        printf("***New packet received***\n");
-        printf("Content: ");
-        for(i = 0; i < payload_size; i++)
-            printf("%c", payload[i]);
-        printf("\n===========================\n");
-    }
-
-    payload[payload_size] = ' ';
-    payload[payload_size + 1] = 'R';
-    payload[payload_size + 2] = 'e';
+    printf("\n=====\n\n");
+    fflush(stdout);
 
     // repeat the packet
-    init_modem();
-    write_register(REG_OPMODE, OPMODE_STDBY);
-    uint8_t mode = read_register(REG_OPMODE);
-    
-    lora_send_packet(payload, payload_size + 3);
+    lora_send_packet(payload, payload_size);
 
     // unmask interrupts
     write_register(REG_IRQ_FLAGS_MASK, 0x00);

@@ -3,13 +3,9 @@
 
 #include "pico/stdlib.h"
 
-void lora_setup(int);
+void lora_setup(void);
 void lora_set_op_mode(uint8_t mode);
 void lora_send_packet(uint8_t* buffer, uint8_t length);
-
-#define LOGGING_VERBOSE 0
-#define LOGGING_LIGHT 1
-#define LOGGING_NONE 2
 
 
 // registers are on page 102 of the datasheet:
