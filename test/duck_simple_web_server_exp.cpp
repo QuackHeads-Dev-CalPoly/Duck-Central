@@ -26,7 +26,7 @@ int main() {
     {
         printf("Attempting to connect to SSID\n");
 
-        status = WiFi.begin(/*SSID*/, /*PASSWORD*/);
+        status = WiFi.begin(/*WIFI_SSID*/, /*PASSWORD*/);
         sleep_ms(1000 * 10); // Wait 10 seconds for connection
     }
     server.begin();

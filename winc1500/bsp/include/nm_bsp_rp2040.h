@@ -62,10 +62,10 @@
 
 /* RESET, INTERRUPT, and ENABLE GPIO Pin Macros */
 #if !defined(WINC1500_RESET_PIN)
-  #define WINC1500_RESET_PIN  7
+  #define WINC1500_RESET_PIN  9
 #endif
 #if !defined(WINC1500_INTN_PIN)
-  #define WINC1500_INTN_PIN   6
+  #define WINC1500_INTN_PIN   14
 #endif
 #if !defined(WINC1501_CHIP_EN_PIN)
   #define WINC1500_CHIP_EN_PIN -1
@@ -73,21 +73,21 @@
 
 /* SCK, MOSI, MISO, CS Pin Macros */
 #if !defined(WINC1500_SPI_SCK_PIN)
-  #define WINC1500_SPI_SCK_PIN 2
+  #define WINC1500_SPI_SCK_PIN 10
 #endif
 #if !defined(WINC1500_SP0_MOSI_PIN)
-  #define WINC1500_SPI_MOSI_PIN 3
+  #define WINC1500_SPI_MOSI_PIN 11
 #endif
 #if !defined(WINC1500_SPI_MISO_PIN)
-  #define WINC1500_SPI_MISO_PIN 4
+  #define WINC1500_SPI_MISO_PIN 12
 #endif
 #if !defined(WINC1500_SPI_CS_PIN)
-  #define WINC1500_SPI_CS_PIN 5
+  #define WINC1500_SPI_CS_PIN 13
 #endif
 
 /* SPI Port we are on */
 #if !defined(WINC1500_SPI_PORT)
-  #define WINC1500_SPI_PORT spi0
+  #define WINC1500_SPI_PORT spi1
 #endif
 
 /* SPI CLK speed */

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "hardware/uart.h"
+#include "hardware/dma.h"
 #include "pico/stdlib.h"
 
 // if using the GP_20U7 module
@@ -16,7 +17,6 @@
 #define UART_RX_PIN 17
 
 #define INDENT_SPACES "  "
-
 
 void setup_gps(void) {
     uart_init(UART_GPS, GPS_BAUD_RATE);
@@ -152,9 +152,9 @@ void read_gps_blocking(GPSData* gps_data) {
 void read_gps_full(void) {
     char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
 
-    while (1) {
-        printf("\n\n\n\n");
-        uart_read_blocking(UART_GPS, buff, sizeof(buff));
+    while ( !dma_channel_is_busy(dma_channel) ) {
+        //printf("\n\n\n\n");
+        //uart_read_blocking(UART_GPS, buff, sizeof(buff));
 
         printf(":::::::::::::::::::::::::::::::::::\n{\n %s \n}\n:::::::::::::::::::::::::::::::::::", buff);
 
