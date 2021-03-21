@@ -140,4 +140,4 @@
 
 #define NM_EDGE_INTERRUPT 1
 
-#endif /* _NM_BSP_ARDUINO_H_ */
+#endif /* _NM_BSP_RP2040_H_ */
