@@ -2,7 +2,6 @@ extern "C"
 {
     #include <string.h>
     #include <stdio.h>
-
     #include "lora.h"
     #include "pico/stdlib.h"
 }

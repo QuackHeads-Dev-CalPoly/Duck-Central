@@ -4,13 +4,29 @@
 #include "pico/stdlib.h"
 
 void lora_setup(int);
-void lora_set_op_mode(uint8_t mode);
-void lora_send_packet(uint8_t* buffer, uint8_t length);
+void lora_set_op_mode(uint8_t);
+void lora_send_packet(uint8_t*, uint8_t);
+
+// pre-computed frequency values
+// computed by: [frequency in Hz] / 61.035Hz
+enum frequency {
+    Freq_915 = 0xE4C026
+};
+
+void set_frequency(enum frequency);
+
+void init_io(void);
+void init_modem(void);
+void irq_rx_complete(uint, uint32_t);
+void modify_packet(uint8_t*, uint8_t*);
+void write_register(uint8_t, uint8_t);
+uint8_t read_register(uint8_t);
+static inline void cs_select(void);
+static inline void cs_deselect(void);
 
 #define LOGGING_VERBOSE 0
 #define LOGGING_LIGHT 1
 #define LOGGING_NONE 2
-
 
 // registers are on page 102 of the datasheet:
 // https://cdn.sparkfun.com/assets/learn_tutorials/8/0/4/RFM95_96_97_98W.pdf
@@ -147,11 +163,4 @@ void lora_send_packet(uint8_t* buffer, uint8_t length);
 /******************************************************************************
  * end: DIO config registers
  *****************************************************************************/
-
-// pre-computed frequency values
-// computed by: [frequency in Hz] / 61.035Hz
-enum frequency {
-    Freq_915 = 0xE4C026
-};
-
 #endif

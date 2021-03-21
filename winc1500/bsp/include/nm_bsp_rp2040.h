@@ -43,6 +43,7 @@
 #define _NM_BSP_RP_2040_H_
 
 #include <stdint.h>
+#include "quacker_board_config.h"
 
 /*
  * Pico Board pin defs for WINC1500 WiFi co-processor module:
@@ -61,39 +62,81 @@
  */
 
 /* RESET, INTERRUPT, and ENABLE GPIO Pin Macros */
-#if !defined(WINC1500_RESET_PIN)
-  #define WINC1500_RESET_PIN  9
-#endif
-#if !defined(WINC1500_INTN_PIN)
-  #define WINC1500_INTN_PIN   14
-#endif
-#if !defined(WINC1501_CHIP_EN_PIN)
-  #define WINC1500_CHIP_EN_PIN -1
+#if BOARD_REVISION <= 2
+  #if !defined(WINC1500_RESET_PIN)
+    #define WINC1500_RESET_PIN  9
+  #endif
+  #if !defined(WINC1500_INTN_PIN)
+    #define WINC1500_INTN_PIN   14
+  #endif
+  #if !defined(WINC1501_CHIP_EN_PIN)
+    #define WINC1500_CHIP_EN_PIN -1
+  #endif
+
+  /* SCK, MOSI, MISO, CS Pin Macros */
+  #if !defined(WINC1500_SPI_SCK_PIN)
+    #define WINC1500_SPI_SCK_PIN 10
+  #endif
+  #if !defined(WINC1500_SP0_MOSI_PIN)
+    #define WINC1500_SPI_MOSI_PIN 11
+  #endif
+  #if !defined(WINC1500_SPI_MISO_PIN)
+    #define WINC1500_SPI_MISO_PIN 12
+  #endif
+  #if !defined(WINC1500_SPI_CS_PIN)
+    #define WINC1500_SPI_CS_PIN 13
+  #endif
+
+  /* SPI Port we are on */
+  #if !defined(WINC1500_SPI_PORT)
+    #define WINC1500_SPI_PORT spi1
+  #endif
+
+  /* SPI CLK speed */
+  #if !defined(WINC1500_SPI_CLK_SPEED)
+    #define WINC1500_SPI_CLK_SPEED 12000000
+  #endif
+
+#elif BOARD_REVISION >= 3
+  #if !defined(WINC1500_RESET_PIN)
+    #define WINC1500_RESET_PIN 12
+  #endif
+  #if !defined(WINC1500_INTN_PIN)
+    #define WINC1500_INTN_PIN 14  
+  #endif
+  #if !defined(WINC1501_CHIP_EN_PIN)
+    #define WINC1500_CHIP_EN_PIN -1
+  #endif
+
+  /* SCK, MOSI, MISO, CS Pin Macros */
+  #if !defined(WINC1500_SPI_SCK_PIN)
+    #define WINC1500_SPI_SCK_PIN 10
+  #endif
+  #if !defined(WINC1500_SP0_MOSI_PIN)
+    #define WINC1500_SPI_MOSI_PIN 15
+  #endif
+  #if !defined(WINC1500_SPI_MISO_PIN)
+    #define WINC1500_SPI_MISO_PIN 8
+  #endif
+  #if !defined(WINC1500_SPI_CS_PIN)
+    #define WINC1500_SPI_CS_PIN 13
+  #endif
+
+  /* SPI Port we are on */
+  #if !defined(WINC1500_SPI_PORT)
+    #define WINC1500_SPI_PORT spi1
+  #endif
+
+  /* SPI CLK speed */
+  /* 
+    Common clock rate for LoRa and ATWINC1500 non max is 8 MHz
+    Max for LoRa is 10 MHz so decided to bring it down lower
+  */
+  #if !defined(WINC1500_SPI_CLK_SPEED)
+    #define WINC1500_SPI_CLK_SPEED 8000000
+  #endif
 #endif
 
-/* SCK, MOSI, MISO, CS Pin Macros */
-#if !defined(WINC1500_SPI_SCK_PIN)
-  #define WINC1500_SPI_SCK_PIN 10
-#endif
-#if !defined(WINC1500_SP0_MOSI_PIN)
-  #define WINC1500_SPI_MOSI_PIN 11
-#endif
-#if !defined(WINC1500_SPI_MISO_PIN)
-  #define WINC1500_SPI_MISO_PIN 12
-#endif
-#if !defined(WINC1500_SPI_CS_PIN)
-  #define WINC1500_SPI_CS_PIN 13
-#endif
-
-/* SPI Port we are on */
-#if !defined(WINC1500_SPI_PORT)
-  #define WINC1500_SPI_PORT spi1
-#endif
-
-/* SPI CLK speed */
-#if !defined(WINC1500_SPI_CLK_SPEED)
-  #define WINC1500_SPI_CLK_SPEED 12000000
-#endif
 
 #define NM_EDGE_INTERRUPT 1
 

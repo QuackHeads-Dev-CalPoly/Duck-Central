@@ -1,40 +1,8 @@
-// For the HopeRF RFM95CW Adafruit breakout board
-
 #include "lora.h"
+#include "lora_interface.h"
 #include "hardware/spi.h"
 #include "hardware/irq.h"
 #include <stdio.h>
-
-#define SPI_DATA_BITS 8
-
-#define SPI_PORT    spi0
-#define PIN_MISO    4
-#define PIN_MOSI    7
-#define PIN_CS      5
-#define PIN_SCK     6
-#define PIN_DIO0    3  // used for TX/RX complete
-
-#define LORA_FREQUENCY  FREQ_915
-#define LORA_BW         BANDWIDTH_125K
-#define LORA_ECR        ERROR_CODING_4_5
-#define LORA_HEADER     EXPLICIT_MODE
-#define LORA_SF         SPREADING_7
-#define LORA_CRC        CRC_ON
-
-// based on the frequency of the crystal on the LoRa module.
-#define FREQ_RESOLUTION 61.035
-
-
-void set_frequency(enum frequency freq);
-void init_io(void);
-void init_modem(void);
-void irq_rx_complete(uint gpio, uint32_t events);
-void modify_packet(uint8_t* payload[], uint8_t* payload_size);
-void write_register(uint8_t reg, uint8_t data);
-uint8_t read_register(uint8_t addr);
-static inline void cs_select(void);
-static inline void cs_deselect(void);
-
 
 int logging_set = LOGGING_VERBOSE;
 
@@ -62,20 +30,20 @@ void lora_setup(int logging) {
 
 void init_io(void) {
     // SPI0 at 0.5MHz.
-    spi_init(SPI_PORT, 500 * 1000);
+    spi_init(LORA_SPI_PORT, LORA_SPI_CLK_SPEED);
 
-    gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
+    gpio_set_function(LORA_PIN_MISO, GPIO_FUNC_SPI);
+    gpio_set_function(LORA_PIN_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(LORA_PIN_MOSI, GPIO_FUNC_SPI);
 
     // Chip select is active-low, so we'll initialise it to a driven-high state
-    gpio_init(PIN_CS);
-    gpio_set_dir(PIN_CS, GPIO_OUT);
-    gpio_put(PIN_CS, 1);
+    gpio_init(LORA_PIN_CS);
+    gpio_set_dir(LORA_PIN_CS, GPIO_OUT);
+    gpio_put(LORA_PIN_CS, 1);
 
     // set up pin for RX complete
-    gpio_init(PIN_DIO0);
-    gpio_set_dir(PIN_DIO0, GPIO_IN);
+    gpio_init(LORA_PIN_DIO0);
+    gpio_set_dir(LORA_PIN_DIO0, GPIO_IN);
 }
 
 void init_modem(void) {
@@ -89,7 +57,7 @@ void init_modem(void) {
     // enable 'rx complete' signal
     write_register(REG_DIO_MAPPING_1, DIO_0_RX_COMPLETE);
     // set interrupt when RX is complete
-    gpio_set_irq_enabled_with_callback(PIN_DIO0, GPIO_IRQ_EDGE_RISE, true, &irq_rx_complete);
+    gpio_set_irq_enabled_with_callback(LORA_PIN_DIO0, GPIO_IRQ_EDGE_RISE, true, &irq_rx_complete);
 }
 
 void set_frequency(enum frequency freq) { 
@@ -159,8 +127,8 @@ void lora_send_packet(uint8_t* buffer, uint8_t length) {
 
     // write
     cs_select();
-    spi_write_blocking(SPI_PORT, &addr_byte, 1);
-    spi_write_blocking(SPI_PORT, buffer, length);
+    spi_write_blocking(LORA_SPI_PORT, &addr_byte, 1);
+    spi_write_blocking(LORA_SPI_PORT, buffer, length);
     cs_deselect();
 
     // put it into tx mode
@@ -293,7 +261,7 @@ void write_register(uint8_t reg, uint8_t data) {
     buf[1] = data;
 
     cs_select();
-    spi_write_blocking(SPI_PORT, buf, 2);
+    spi_write_blocking(LORA_SPI_PORT, buf, 2);
     cs_deselect();
 }
 
@@ -305,8 +273,8 @@ uint8_t read_register(uint8_t addr) {
     addr &= 0x7F;
 
     cs_select();
-    spi_write_blocking(SPI_PORT, &addr, 1);
-    spi_read_blocking(SPI_PORT, 0, &buf, 1);
+    spi_write_blocking(LORA_SPI_PORT, &addr, 1);
+    spi_read_blocking(LORA_SPI_PORT, 0, &buf, 1);
     cs_deselect();
 
     //printf("READ [%02x] = %02X (ascii %c)\n", addr, buf, buf);
@@ -318,12 +286,12 @@ uint8_t read_register(uint8_t addr) {
 static inline void cs_select(void) {
     // nops are delays
     asm volatile("nop \n nop \n nop");
-    gpio_put(PIN_CS, 0);  // Active low
+    gpio_put(LORA_PIN_CS, 0);  // Active low
     asm volatile("nop \n nop \n nop");
 }
 
 static inline void cs_deselect(void) {
     asm volatile("nop \n nop \n nop");
-    gpio_put(PIN_CS, 1);
+    gpio_put(LORA_PIN_CS, 1);
     asm volatile("nop \n nop \n nop");
 }
