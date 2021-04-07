@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "hardware/uart.h"
-#include "hardware/dma.h"
 #include "pico/stdlib.h"
 
 // if using the GP_20U7 module

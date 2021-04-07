@@ -21,7 +21,7 @@ int main() {
     fflush(stdout);
     sleep_ms(100);
 
-    lora_setup();
+    lora_setup(LOGGING_VERBOSE);
 
     lora_set_op_mode(OPMODE_TX);
 

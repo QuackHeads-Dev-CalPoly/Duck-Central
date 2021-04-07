@@ -43,7 +43,7 @@
 #define _NM_BSP_RP_2040_H_
 
 #include <stdint.h>
-#include "quacker_board_config.h"
+#include "board_config.h"
 
 /*
  * Pico Board pin defs for WINC1500 WiFi co-processor module:

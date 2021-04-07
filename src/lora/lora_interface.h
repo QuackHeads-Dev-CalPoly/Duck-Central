@@ -2,7 +2,7 @@
 #define __LORA_INTERFACE_H__
 
 #include "lora.h"
-#include "quacker_board_config.h"
+#include "board_config.h"
 
 /* 
     LoRa SPI interface and Radio config definitions/paramters
