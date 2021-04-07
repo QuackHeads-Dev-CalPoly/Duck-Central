@@ -1,8 +1,8 @@
 #--------------------------- Range Test -----------------------------#
-add_executable(range_test
-    duck_range_test.c
+add_executable(range
+    test_range.c
 )
-target_link_libraries(range_test 
+target_link_libraries(range 
     PRIVATE
         lora
         gps
@@ -12,17 +12,17 @@ target_link_libraries(range_test
         hardware_gpio
 )
 # create UF2 files
-pico_add_extra_outputs(range_test)
+pico_add_extra_outputs(range)
 # Enable stdout to USB serial
-pico_enable_stdio_usb(range_test 1)
+pico_enable_stdio_usb(range 1)
 # Disable stdout to UART0
-pico_enable_stdio_uart(range_test 0)
+pico_enable_stdio_uart(range 0)
 
 
 
 #--------------------------- Blink Test -----------------------------#
 add_executable(blink
-    duck_simple_blink.c
+    test_blink.c
 )
 # create UF2 files
 pico_add_extra_outputs(blink)
@@ -34,7 +34,7 @@ pico_enable_stdio_uart(blink 0)
 
 #--------------------------- ADC Test -----------------------------#
 add_executable(adc_batt
-    duck_adc_temp_and_bat_sense.cpp
+    test_adc_temp_and_bat_sense.cpp
 )
 target_link_libraries(adc_batt 
     PRIVATE 
