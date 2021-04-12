@@ -11,19 +11,17 @@
 #endif
 
 #include <string.h>
-
-#include <iostream>
-#include <string>
+#include <stdio.h>
 
 #define __FILENAME__ \
     (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #if defined(CDP_LOG_ERROR)
-#define logerror(...)                                                      \
-    do {                                                                   \
-        std::cout << "[ERROR: ";                                           \
-        std::cout << std::string(__FILENAME__) << ":" + __LINE__ << "]  "; \
-        std::cout << __VA_ARGS__ << "\n";                                  \
+#define logerror(...)                               \
+    do {                                            \
+        printf("[ERROR: ");                         \
+        printf(__FILENAME__, ":", __LINE__, "]  "); \
+        printf(__VA_ARGS__, "\n");                  \
     } while (0)
 #else
 #define logerr(...) \
@@ -33,11 +31,11 @@
 #endif
 
 #if defined(CDP_LOG_WARN)
-#define logwarn(...)                                                        \
-    do {                                                                    \
-        std::cout << "[WARN: ";                                             \
-        std::cout << std::string(__FILENAME__) << ":" << __LINE__ << "]  "; \
-        std::cout << std::string(__VA_ARGS__) << "\n";                      \
+#define logwarn(...)                                \
+    do {                                            \
+        printf("[WARN: ");                          \
+        printf(__FILENAME__, ":", __LINE__, "]  "); \
+        printf(__VA_ARGS__, "\n");                  \
     } while (0)
 #else
 #define logwarn(...) \
@@ -47,11 +45,11 @@
 #endif
 
 #if defined(CDP_LOG_INFO)
-#define loginfo(...)                                     \
-    do {                                                 \
-        std::cout << "[INFO: ";                          \
-        std::cout << std::string(__FILENAME__) << "]  "; \
-        std::cout << std::string(__VA_ARGS__) << "\n";   \
+#define loginfo(...)                 \
+    do {                             \
+        printf("[INFO: ");           \
+        printf(__FILENAME__, "]  "); \
+        printf(__VA_ARGS__, "\n");   \
     } while (0)
 #else
 #define loginfo(...) \
@@ -61,11 +59,11 @@
 #endif
 
 #if defined(CDP_LOG_DEBUG)
-#define logdebug(...)                                    \
-    do {                                                 \
-        std::cout << "[DEBUG: ";                         \
-        std::cout << std::string(__FILENAME__) << "]  "; \
-        std::cout << std::string(__VA_ARGS__) << "\n";   \
+#define logdebug(...)                \
+    do {                             \
+        printf("[DEBUG: ");          \
+        printf(__FILENAME__, "]  "); \
+        printf(__VA_ARGS__, "\n");   \
     } while (0)
 #else
 #define logdbg(...) \
