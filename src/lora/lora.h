@@ -154,7 +154,8 @@ private:
 
 // 20DBm
 #define REG_PA_DAC 0x4D
-#define PA_DAC_20 0x87
+#define PA_DAC_20DB 0x87  // upper bit is reserved, it should be a 1
+#define PA_DAC_DEFAULT 0x84  // upper bit is reserved, it should be a 1
 
 // low noise amplifier
 #define REG_LNA 0x0C
@@ -182,5 +183,8 @@ private:
 #define REG_PKT_SNR_VAL 0x19
 
 #define REG_PKT_RSSI_VAL 0x1A
+
+#define REG_OCP 0x0B
+#define OCP_MAX_CURRENT 0b00111111
 
 #endif

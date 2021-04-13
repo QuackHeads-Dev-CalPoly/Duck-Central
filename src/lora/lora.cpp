@@ -39,6 +39,7 @@ void Lora::set_op_mode(uint8_t mode) {
             // Low noise amplifier off for transmissions to save power
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_MAX_BOOST);
+            write_register(REG_PA_DAC, PA_DAC_20DB);
             // enable 'tx complete' signal
             write_register(REG_DIO_MAPPING_1, DIO_0_TX_COMPLETE);
             // set interrupt when TX is complete
@@ -50,6 +51,7 @@ void Lora::set_op_mode(uint8_t mode) {
         case OPMODE_RX_CONT: {
             write_register(REG_LNA, LNA_MAX_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
+            write_register(REG_PA_DAC, PA_DAC_DEFAULT);
             // enable 'rx complete' signal
             write_register(REG_DIO_MAPPING_1, DIO_0_RX_COMPLETE);
             // set interrupt when RX is complete
@@ -60,11 +62,13 @@ void Lora::set_op_mode(uint8_t mode) {
         case OPMODE_STDBY: {
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
+            write_register(REG_PA_DAC, PA_DAC_DEFAULT);
         } break;
 
         case OPMODE_SLEEP: {
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
+            write_register(REG_PA_DAC, PA_DAC_DEFAULT);
         } break;
 
         default:
@@ -131,6 +135,9 @@ void Lora::init_modem(void) {
 
     write_register(REG_MODEM_CONFIG_1, LORA_BW | LORA_ECR | LORA_HEADER);
     write_register(REG_MODEM_CONFIG_2, LORA_SF | LORA_CRC);
+
+    // set OCP to max value (240mA)
+    write_register(REG_OCP, OCP_MAX_CURRENT);
 
     // enable 'rx complete' signal
     write_register(REG_DIO_MAPPING_1, DIO_0_RX_COMPLETE);
