@@ -3,30 +3,41 @@
 
 #include "pico/stdlib.h"
 
-void lora_setup(int);
-void lora_set_op_mode(uint8_t);
-void lora_send_packet(uint8_t*, uint8_t);
+#define LOG_DEBUG 1     // errors and info and debug
+#define LOG_INFO 2      // errors and info
+#define LOG_ERROR 3     // only errors
+#define LOG_NONE 4      // no logging
 
-// pre-computed frequency values
-// computed by: [frequency in Hz] / 61.035Hz
-enum frequency {
-    Freq_915 = 0xE4C026
+typedef struct {
+    uint8_t payload[255];
+    uint8_t length;
+    bool valid;
+} LoraPayload;
+
+// a function pointer for a receive callback
+typedef void (*callback_rx_fn)(LoraPayload);
+
+// a function pointer for a transmit callback
+typedef void (*callback_tx_fn)(void);
+
+class Lora {
+public:
+    Lora();
+    void set_op_mode(uint8_t);
+    void send_packet(uint8_t*, uint8_t);
+    void set_receive_callback(callback_rx_fn);
+    void set_transmit_callback(callback_tx_fn);
+
+    // pre-computed frequency values
+    // computed by: [frequency in Hz] / 61.035Hz
+    enum frequency { Freq_915 = 0xE4C026 };
+
+private:
+    void set_frequency(enum frequency);
+    void init_io(void);
+    void init_modem(void);
+    void modify_packet(uint8_t*, uint8_t*);
 };
-
-void set_frequency(enum frequency);
-
-void init_io(void);
-void init_modem(void);
-void irq_rx_complete(uint, uint32_t);
-void modify_packet(uint8_t*, uint8_t*);
-void write_register(uint8_t, uint8_t);
-uint8_t read_register(uint8_t);
-static inline void cs_select(void);
-static inline void cs_deselect(void);
-
-#define LOGGING_VERBOSE 0
-#define LOGGING_LIGHT 1
-#define LOGGING_NONE 2
 
 // registers are on page 102 of the datasheet:
 // https://cdn.sparkfun.com/assets/learn_tutorials/8/0/4/RFM95_96_97_98W.pdf

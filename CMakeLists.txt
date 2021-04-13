@@ -10,6 +10,8 @@ message("Building Version: " ${PROJECT_VER_STR})
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})

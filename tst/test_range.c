@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "lora.h"
+//#include "lora.h"
 #include "pico/stdlib.h"
 #include "gps.h"
 
@@ -21,9 +21,9 @@ int main() {
     fflush(stdout);
     sleep_ms(100);
 
-    lora_setup(LOGGING_VERBOSE);
+    //lora_setup(LOGGING_VERBOSE);
 
-    lora_set_op_mode(OPMODE_TX);
+    //lora_set_op_mode(OPMODE_TX);
 
     setup_gps();
 
@@ -84,7 +84,7 @@ int main() {
         printf("sending\n");
         fflush(stdout);
 
-        lora_send_packet(packet_buff, offset);
+        //lora_send_packet(packet_buff, offset);
     }
 
     return 0;

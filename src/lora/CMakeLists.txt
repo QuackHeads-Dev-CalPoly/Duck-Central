@@ -1,6 +1,6 @@
 # Create a library which includes the source files
 # Any number of sources could be listed here.
-add_library(lora lora.c)
+add_library(lora lora.cpp)
 
 target_link_libraries(lora
     PUBLIC
