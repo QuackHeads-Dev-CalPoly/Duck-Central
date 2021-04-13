@@ -11,6 +11,8 @@ static inline void cs_deselect(void);
 static void irq_rx_complete(uint, uint32_t);
 static void irq_tx_complete(uint, uint32_t);
 static uint8_t receive_packet(LoraPayload* payload);
+static float get_rssi(void);
+static float get_snr(void);
 
 // a function pointer for a user-provided callback function to be called on
 // receive interrupt
@@ -21,22 +23,19 @@ static callback_rx_fn on_receive = NULL;
 static callback_tx_fn on_transmit = NULL;
 
 Lora::Lora() {
-    loginfo("\nInitializing LoRa...\n");
-
     init_io();
-
     init_modem();
-
-    write_register(REG_OPMODE, OPMODE_STDBY);
-    uint8_t mode = read_register(REG_OPMODE);
-
-    loginfo("LoRa initialization complete.\n");
 }
+
+void Lora::sleep() { set_op_mode(OPMODE_SLEEP); }
+
+void Lora::startReceive() { set_op_mode(OPMODE_RX_CONT); }
+
+void Lora::standby() { set_op_mode(OPMODE_STDBY); }
 
 void Lora::set_op_mode(uint8_t mode) {
     switch (mode) {
         case OPMODE_TX: {
-            logdebug("setting to TX Single Mode\n");
             // Low noise amplifier off for transmissions to save power
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_MAX_BOOST);
@@ -49,7 +48,6 @@ void Lora::set_op_mode(uint8_t mode) {
         } break;
 
         case OPMODE_RX_CONT: {
-            logdebug("setting to RX Continuous Mode\n");
             write_register(REG_LNA, LNA_MAX_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
             // enable 'rx complete' signal
@@ -60,13 +58,11 @@ void Lora::set_op_mode(uint8_t mode) {
         } break;
 
         case OPMODE_STDBY: {
-            logdebug("setting to Standby Mode\n");
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
         } break;
 
         case OPMODE_SLEEP: {
-            logdebug("setting to Sleep Mode\n");
             write_register(REG_LNA, LNA_OFF_GAIN);
             write_register(REG_PA_CONFIG, PA_OFF_BOOST);
         } break;
@@ -82,9 +78,7 @@ void Lora::set_op_mode(uint8_t mode) {
 /**
  * See: datasheet page 75
  **/
-void Lora::send_packet(uint8_t* buffer, uint8_t length) {
-    logdebug("sending packet (size=%d):", length);
-
+void Lora::transmit(uint8_t* buffer, uint8_t length) {
     // sleep to write registers
     set_op_mode(OPMODE_STDBY);
     fflush(stdout);
@@ -158,6 +152,26 @@ void Lora::set_frequency(enum frequency freq) {
     set_op_mode(original_op_mode);
 }
 
+static float get_snr() {
+    int8_t rawSNR = (int8_t) read_register(REG_PKT_SNR_VAL);
+    return (rawSNR / 4.0);
+}
+
+static float get_rssi() {
+    // for LoRa, get RSSI of the last packet
+    float lastPacketRSSI = -157 + read_register(REG_PKT_RSSI_VAL);
+
+    // spread-spectrum modulation signal can be received below noise floor
+    // check last packet SNR and if it's less than 0, add it to reported RSSI to
+    // get the correct value
+    float lastPacketSNR = get_snr();
+    if (lastPacketSNR < 0.0) {
+        lastPacketRSSI += lastPacketSNR;
+    }
+
+    return lastPacketRSSI;
+}
+
 /**
  * See: datasheet page 36
  * In order to retrieve received data from the FIFO, we must ensure
@@ -198,7 +212,8 @@ static uint8_t receive_packet(LoraPayload* payload) {
     write_register(REG_FIFO_ADDR_PTR, read_register(REG_FIFO_RX_CURRENT_ADDR));
 
     payload->length = read_register(REG_RX_NB_BYTES);
-    payload->valid = true;
+    payload->RSSI = get_rssi();
+    payload->SNR = get_snr();
 
     uint8_t i = 0;
     for (i = 0; i < payload->length; i++) {
@@ -206,11 +221,6 @@ static uint8_t receive_packet(LoraPayload* payload) {
         uint8_t val = read_register(REG_FIFO);
         payload->payload[i] = val;
     }
-
-    logdebug("=======\n");
-    loginfo("*New packet received*\n");
-    logdebug("Length %d\n", payload->length);
-    logdebug("=======\n");
 
     return payload->length;
 }
@@ -288,7 +298,7 @@ static uint8_t read_register(uint8_t addr) {
     cs_deselect();
 
     // logdebug("READ [%02x] = %02X (ascii %c)\n", addr, buf, buf);
-    fflush(stdout);
+    // fflush(stdout);
 
     return buf;
 }

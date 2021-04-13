@@ -11,8 +11,13 @@
 typedef struct {
     uint8_t payload[255];
     uint8_t length;
-    bool valid;
+    float RSSI;
+    float SNR;
 } LoraPayload;
+
+// pre-computed frequency values
+// computed by: [frequency in Hz] / 61.035Hz
+enum frequency { Freq_915 = 0xE4C026 };
 
 // a function pointer for a receive callback
 typedef void (*callback_rx_fn)(LoraPayload);
@@ -23,16 +28,15 @@ typedef void (*callback_tx_fn)(void);
 class Lora {
 public:
     Lora();
-    void set_op_mode(uint8_t);
-    void send_packet(uint8_t*, uint8_t);
     void set_receive_callback(callback_rx_fn);
     void set_transmit_callback(callback_tx_fn);
-
-    // pre-computed frequency values
-    // computed by: [frequency in Hz] / 61.035Hz
-    enum frequency { Freq_915 = 0xE4C026 };
+    void transmit(uint8_t*, uint8_t);
+    void sleep(void);
+    void startReceive(void);
+    void standby(void);
 
 private:
+    void set_op_mode(uint8_t);
     void set_frequency(enum frequency);
     void init_io(void);
     void init_modem(void);
@@ -174,4 +178,9 @@ private:
 /******************************************************************************
  * end: DIO config registers
  *****************************************************************************/
+
+#define REG_PKT_SNR_VAL 0x19
+
+#define REG_PKT_RSSI_VAL 0x1A
+
 #endif

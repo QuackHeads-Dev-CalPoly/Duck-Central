@@ -24,7 +24,7 @@ int main() {
     lora.set_receive_callback(on_receive);
     lora.set_transmit_callback(on_transmit);
 
-    lora.set_op_mode(OPMODE_RX_CONT);
+    lora.startReceive();
 
     while (1) {
         tight_loop_contents();
@@ -34,13 +34,15 @@ int main() {
 }
 
 void on_receive(LoraPayload payload) {
+    printf("Received.\n\tSNR: %f\n", payload.SNR);
+    printf("\tRSSI: %f\n", payload.RSSI);
     // repeat the payload
-    lora.send_packet(payload.payload, payload.length);
+    lora.transmit(payload.payload, payload.length);
 }
 
 void on_transmit() {
     // set back to RX mode so we can hear more packets once we're done repeating the first.
-    lora.set_op_mode(OPMODE_RX_CONT);
+    lora.startReceive();
 }
 
 void setup_led(void) {
