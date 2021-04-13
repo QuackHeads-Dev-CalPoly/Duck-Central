@@ -19,10 +19,8 @@ int main() {
     setup_led();
 
     sleep_ms(5000);
-    gpio_put(LED_PIN, 1);
 
     lora.set_receive_callback(on_receive);
-    lora.set_transmit_callback(on_transmit);
 
     lora.startReceive();
 
@@ -38,14 +36,7 @@ void on_receive(LoraPayload payload) {
     printf("Received.\n\tSNR: %f\n", payload.SNR);
     printf("\tRSSI: %f\n", payload.RSSI);
     fflush(stdout);
-    // repeat the payload
-    lora.transmit(payload.payload, payload.length);
     gpio_put(LED_PIN, 0);
-}
-
-void on_transmit() {
-    // set back to RX mode so we can hear more packets once we're done repeating the first.
-    lora.startReceive();
 }
 
 void setup_led(void) {
