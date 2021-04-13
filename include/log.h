@@ -10,17 +10,17 @@
 #define CDP_LOG_WARN
 #endif
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #define __FILENAME__ strrchr("/" __FILE__, '/') + 1
 
 #if defined(CDP_LOG_ERROR)
-#define logerror(msg)                              \
+#define logerror(f_, ...)                          \
     do {                                           \
         printf("[ERROR: ");                        \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf(msg);                               \
+        printf((f_), ##__VA_ARGS__);                 \
     } while (0)
 #else
 #define logerr(...) \
@@ -30,11 +30,11 @@
 #endif
 
 #if defined(CDP_LOG_WARN)
-#define logwarn(msg)                               \
+#define logwarn(f_, ...)                           \
     do {                                           \
         printf("[WARN: ");                         \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf(msg);                               \
+        printf((f_), ##__VA_ARGS__);                 \
     } while (0)
 #else
 #define logwarn(...) \
@@ -44,11 +44,11 @@
 #endif
 
 #if defined(CDP_LOG_INFO)
-#define loginfo(msg)                               \
+#define loginfo(f_, ...)                               \
     do {                                           \
         printf("[INFO: ");                         \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf(msg);                               \
+        printf((f_), ##__VA_ARGS__);                 \
     } while (0)
 #else
 #define loginfo(...) \
@@ -58,11 +58,11 @@
 #endif
 
 #if defined(CDP_LOG_DEBUG)
-#define logdebug(msg)                              \
+#define logdebug(f_, ...)                          \
     do {                                           \
         printf("[DEBUG: ");                        \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf(msg);                               \
+        printf((f_), ##__VA_ARGS__);                 \
     } while (0)
 #else
 #define logdbg(...) \
