@@ -13,15 +13,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#define __FILENAME__ \
-    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define __FILENAME__ strrchr("/" __FILE__, '/') + 1
 
 #if defined(CDP_LOG_ERROR)
-#define logerror(...)                               \
-    do {                                            \
-        printf("[ERROR: ");                         \
-        printf(__FILENAME__, ":", __LINE__, "]  "); \
-        printf(__VA_ARGS__, "\n");                  \
+#define logerror(msg)                              \
+    do {                                           \
+        printf("[ERROR: ");                        \
+        printf("%s:%d] ", __FILENAME__, __LINE__); \
+        printf(msg);                               \
     } while (0)
 #else
 #define logerr(...) \
@@ -31,11 +30,11 @@
 #endif
 
 #if defined(CDP_LOG_WARN)
-#define logwarn(...)                                \
-    do {                                            \
-        printf("[WARN: ");                          \
-        printf(__FILENAME__, ":", __LINE__, "]  "); \
-        printf(__VA_ARGS__, "\n");                  \
+#define logwarn(msg)                               \
+    do {                                           \
+        printf("[WARN: ");                         \
+        printf("%s:%d] ", __FILENAME__, __LINE__); \
+        printf(msg);                               \
     } while (0)
 #else
 #define logwarn(...) \
@@ -45,11 +44,11 @@
 #endif
 
 #if defined(CDP_LOG_INFO)
-#define loginfo(...)                 \
-    do {                             \
-        printf("[INFO: ");           \
-        printf(__FILENAME__, "]  "); \
-        printf(__VA_ARGS__, "\n");   \
+#define loginfo(msg)                               \
+    do {                                           \
+        printf("[INFO: ");                         \
+        printf("%s:%d] ", __FILENAME__, __LINE__); \
+        printf(msg);                               \
     } while (0)
 #else
 #define loginfo(...) \
@@ -59,11 +58,11 @@
 #endif
 
 #if defined(CDP_LOG_DEBUG)
-#define logdebug(...)                \
-    do {                             \
-        printf("[DEBUG: ");          \
-        printf(__FILENAME__, "]  "); \
-        printf(__VA_ARGS__, "\n");   \
+#define logdebug(msg)                              \
+    do {                                           \
+        printf("[DEBUG: ");                        \
+        printf("%s:%d] ", __FILENAME__, __LINE__); \
+        printf(msg);                               \
     } while (0)
 #else
 #define logdbg(...) \
