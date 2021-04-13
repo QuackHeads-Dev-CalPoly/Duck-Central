@@ -20,7 +20,7 @@
     do {                                           \
         printf("[ERROR: ");                        \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf((f_), ##__VA_ARGS__);                 \
+        printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
 #define logerr(...) \
@@ -34,7 +34,7 @@
     do {                                           \
         printf("[WARN: ");                         \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf((f_), ##__VA_ARGS__);                 \
+        printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
 #define logwarn(...) \
@@ -44,11 +44,11 @@
 #endif
 
 #if defined(CDP_LOG_INFO)
-#define loginfo(f_, ...)                               \
+#define loginfo(f_, ...)                           \
     do {                                           \
         printf("[INFO: ");                         \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf((f_), ##__VA_ARGS__);                 \
+        printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
 #define loginfo(...) \
@@ -62,7 +62,7 @@
     do {                                           \
         printf("[DEBUG: ");                        \
         printf("%s:%d] ", __FILENAME__, __LINE__); \
-        printf((f_), ##__VA_ARGS__);                 \
+        printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
 #define logdbg(...) \
