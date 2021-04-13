@@ -3,11 +3,19 @@
 
 #define CDP_DEBUG
 
-#ifdef CDP_DEBUG
+// always log errors and warns
 #define CDP_LOG_ERROR
+#define CDP_LOG_WARN
+
+// info enables errors, warns, info
+#ifdef CDP_INFO
+#define CDP_LOG_INFO
+#endif
+
+// debug enables errors, warns, info, debug
+#ifdef CDP_DEBUG
 #define CDP_LOG_INFO
 #define CDP_LOG_DEBUG
-#define CDP_LOG_WARN
 #endif
 
 #include <stdio.h>
@@ -23,9 +31,7 @@
         printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
-#define logerr(...) \
-    {}
-#define logerr_f(...) \
+#define logerror(...) \
     {}
 #endif
 
@@ -39,8 +45,6 @@
 #else
 #define logwarn(...) \
     {}
-#define logwarn_f(...) \
-    {}
 #endif
 
 #if defined(CDP_LOG_INFO)
@@ -53,8 +57,6 @@
 #else
 #define loginfo(...) \
     {}
-#define loginfo_f(...) \
-    {}
 #endif
 
 #if defined(CDP_LOG_DEBUG)
@@ -65,9 +67,7 @@
         printf((f_), ##__VA_ARGS__);               \
     } while (0)
 #else
-#define logdbg(...) \
-    {}
-#define logdbg_f(...) \
+#define logdebug(...) \
     {}
 #endif
 #endif
