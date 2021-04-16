@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/winc1500",
                 "/Users/krdixson/Desktop/pico/pico-sdk/src/rp2_common/**"
             ],
             "defines": [],
