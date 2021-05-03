@@ -1,5 +1,6 @@
 add_executable(gps_test
     duck_simple_gps_test.cpp
+    duck_gps_DMA_test.cpp
 )
 
 target_link_libraries(gps_test

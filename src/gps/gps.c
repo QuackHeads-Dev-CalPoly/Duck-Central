@@ -5,26 +5,69 @@
 
 #include "hardware/uart.h"
 #include "pico/stdlib.h"
+#include "hardware/dma.h"
+#include "hardware/irq.h"
+#include "pico/time.h"
 
-// if using the GP_20U7 module
-#define MAX_SENTENCES       6
-#define GPS_BAUD_RATE       9600
-
-#define MAX_NMEA_FRAME_SIZE 81
+// GPS parametersTemp
+#define GPS_UART_PIN 17
+#define GPS_UART_BAUD_RATE 9600
 
 #define UART_GPS uart0
-#define UART_RX_PIN 17
+#define MAX_SENTENCES 6
+#define MAX_NMEA_FRAME_SIZE 81
 
 #define INDENT_SPACES "  "
 
-void setup_gps(void) {
-    uart_init(UART_GPS, GPS_BAUD_RATE);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+int gps_chan;
+dma_channel_config c;
+
+// save buffer location for handler
+char *gps_buffer_ptr;
+
+void dma_handler()
+{
+    //printf("DMA handler %ld\n", to_ms_since_boot(get_absolute_time()));
+    dma_hw->ints0 = 1u << gps_chan;
+    dma_channel_set_write_addr(gps_chan, gps_buffer_ptr, true);    
 }
 
-void setup_gps_temp(void) {
-    uart_init(uart0, GPS_BAUD_RATE);
-    gpio_set_function(1, GPIO_FUNC_UART); //UART0_RX GP1
+int setup_gps(char gps_buff[]) {
+
+    gps_buffer_ptr = gps_buff;
+
+    // Enable DMA for UART RX FIFO. Not needed as UART FIFOs are by default enabled
+    //uart0_hw->dmacr |= UART_UAchannel_config_set_enableRTDMACR_RXDMAE_BITS;
+
+    // Setup DMA
+    gps_chan = dma_claim_unused_channel(true);
+
+    c = dma_channel_get_default_config(gps_chan);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_8); // Not multiple of 32 or 16 so have 8
+    channel_config_set_dreq(&c, DREQ_UART0_RX);
+    channel_config_set_read_increment(&c, false); // Always read from UART FIFO and don't move on that
+    channel_config_set_write_increment(&c, true); // Always increment as you read to go through the buffer
+
+    dma_channel_configure(
+        gps_chan,
+        &c,
+        gps_buff, // Write into the GPS buffer
+        &uart0_hw->dr, // Read from the GPS RX FIFO
+        7 * 81, // Not sure about this due to the fact that the GPS may not send empty bytes
+        false // Don't start transfers immed.    // Setup GPS
+    );
+
+    // Tell the DMA to raise IRQ line 0 whne the channel finishes a block
+    dma_channel_set_irq0_enabled(gps_chan, true);
+    irq_set_exclusive_handler(DMA_IRQ_0, dma_handler);
+    irq_set_enabled(DMA_IRQ_0, true);
+
+    // Setup GPS
+    uart_init(UART_GPS, GPS_UART_BAUD_RATE);
+    gpio_set_function(GPS_UART_PIN, GPIO_FUNC_UART);
+    dma_channel_set_write_addr(gps_chan, gps_buff, true);  
+
+    return gps_chan;  
 }
 
 int get_latitude(GPSData gps_data) {

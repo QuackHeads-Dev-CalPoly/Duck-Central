@@ -12,8 +12,8 @@ typedef struct {
     bool gga_valid;
 } GPSData;
 
-void setup_gps(void);
-void setup_gps_temp(void);
+void dma_handler();
+int setup_gps(char gps_buff[]);
 
 /**********************************************************
  * BEGIN: GGA definition
