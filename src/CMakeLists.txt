@@ -12,3 +12,6 @@ add_subdirectory(board_control)
 
 # RockBlock code
 add_subdirectory(satellite)
+
+# BMP388 driver code
+add_subdirectory(bmp388)
