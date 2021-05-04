@@ -1,11 +1,4 @@
 /*
-IridiumSBD - An Arduino library for Iridium SBD ("Short Burst Data")
-Communications Suggested and generously supported by Rock Seven Location
-Technology (http://rock7mobile.com), makers of the brilliant RockBLOCK satellite
-modem. Copyright (C) 2013-2017 Mikal Hart All rights reserved.
-
-The latest version of this library is available at http://arduiniana.org.
-
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
