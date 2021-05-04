@@ -88,9 +88,9 @@ int main() {
 }
 
 void ISBDConsolePrintCallback(IridiumSBD *device, char c) { 
-    loginfo("%c", c);
+    printf("%c", c);
 }
 
 void ISBDDebugPrintCallback(IridiumSBD *device, char c) { 
-    logdebug("%c", c);
+    printf("%c", c);
 }
