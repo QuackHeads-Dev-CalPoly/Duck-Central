@@ -45,8 +45,8 @@ void ISBDDebugPrintCallback(IridiumSBD *device, char c) {
 
 // get the milliseconds since system start
 unsigned long ISBDMillis(IridiumSBD *device) __attribute__((weak));
-unsigned long ISBDMillis() {
-    return time_us_64() / 1000UL;
+unsigned long ISBDMillis(IridiumSBD *device) { 
+    return time_us_64() / 1000UL; 
 }
 //--------- END CALLBACK FUNCTIONS
 
