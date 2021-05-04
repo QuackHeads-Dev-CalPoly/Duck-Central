@@ -15,3 +15,6 @@ add_subdirectory(satellite)
 
 # IMU code
 add_subdirectory(bmx160)
+
+# BMP388 driver code
+add_subdirectory(bmp388)
