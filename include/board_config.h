@@ -12,6 +12,6 @@
     quacker board rev0.3 : 3
 */
 
-#define BOARD_REVISION 1
+#define BOARD_REVISION 3
 
 #endif /* */
