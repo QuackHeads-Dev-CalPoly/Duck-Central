@@ -1,6 +1,6 @@
 # Create a library which includes the source files
 # Any number of sources could be listed here.
-add_library(board_control batt_pwr_and_temp_sensor.c)
+add_library(board_control batt_pwr_and_temp_sensor.c power_controller.cpp)
 
 target_link_libraries(board_control
     PUBLIC
