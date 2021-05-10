@@ -11,14 +11,21 @@ void setup_led(void);
 void on_receive(LoraPayload payload);
 void on_transmit(void);
 
-static Lora lora;
-
 int main() {
     stdio_init_all();
 
     setup_led();
 
+    gpio_init(2);
+    gpio_pull_down(2);      // Pull down the pin to keep off
+    gpio_set_dir(2, true);  // The pin to be output
+    gpio_put(2, 1);         // Enable LoRa
+
     sleep_ms(5000);
+
+    Lora lora;
+
+    printf("SNR, RSSI\n");
 
     lora.set_receive_callback(on_receive);
 
@@ -33,8 +40,7 @@ int main() {
 
 void on_receive(LoraPayload payload) {
     gpio_put(LED_PIN, 1);
-    printf("Received.\n\tSNR: %f\n", payload.SNR);
-    printf("\tRSSI: %f\n", payload.RSSI);
+    printf("%s, %f, %f\n", payload.payload, payload.SNR, payload.RSSI);
     fflush(stdout);
     gpio_put(LED_PIN, 0);
 }
