@@ -11,6 +11,7 @@ extern "C"
 }
 
 #include "WiFi101.h"
+#include "pwr_controller.h"
 
 /*
     Make sure wiring is correct 
@@ -33,16 +34,23 @@ WiFiServer server(80);
 int main() {
 
     stdio_init_all();
-    sleep_ms(1000*20);
+    sleep_ms(1000*10);
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     uint8_t led_val = 1;
     gpio_put(LED_PIN, led_val);
 
-    memset(&mess_line, '\0', 255);
+    Pwr_Cntrl power_controller = Pwr_Cntrl();
+    printf("Turning on LoRa\n");
+    sleep_ms(3000);
+    power_controller.turn_on_lora();
+    printf("LoRa on, turning on Wifi\n");
+    sleep_ms(3000);
+    power_controller.turn_on_wifi();
+    printf("WiFi and LoRa now on");
+    sleep_ms(1000);
 
-    // Init ADC temp and battery library ( Only for quacker board )
-    init_batt_pwr_and_temp_sensor();
+    memset(&mess_line, '\0', 255);
 
     printf("Setting up lora...\n");
     lora_setup(LOGGING_LIGHT);
@@ -76,18 +84,6 @@ int main() {
     char content_header[]
         = "Content-type: text/html; charset=UTF-8\n";
 
-
-    char content_1[]
-        = "Click <a href=\"/H\">here</a> turn the LED on<br>";
-    char content_2[]
-        = "Click <a href=\"/L\">here</a> turn the LED off<br>";
-    
-    char content_3[]
-        = "Click <a href=\"/bat\">here</a> to send battery voltage<br>";
-
-    char form_content[]
-        = "<!DOCTYPE html><html><head><title>ClusterDuck Protocol</title></head><body><h2 class=\"\">You are connected to a ClusterDuck</h2><h3>Send message below</h3><div><form action=\"/send\" method=\"GET\" enctype=\"text/plain\"><input id=\"message\" type=\"text\" name=\"message\" /><input type=\"submit\"/></form></div><div>Click <a href=\"/bat\">here</a> to send battery voltage<br></div><div>Click <a href=\"/L\">here</a> turn the LED off<br></div><div>Click <a href=\"/H\">here</a> turn the LED on<br></div></body></html>";
-
     while( 1 )
     {
         if(status != WiFi.status()) // Status changed
@@ -100,7 +96,7 @@ int main() {
                 WiFi.APClientMacAddress(remote_mac);
 
                 printf("Device connected to AP, MAC address: ");
-                m2m_periph_gpio_set_val(M2M_PERIPH_GPIO4, 0);
+                m2m_periph_gpio_set_val(M2M_PERIPH_GPIO6, 0);
                 print_mac_address(remote_mac);
             }
             else
@@ -147,21 +143,6 @@ int main() {
             gpio_put(LED_PIN, 1);
             lora_send_packet((uint8_t*) msg_high, strlen(msg_high));
             led_on_flag = 0;
-        }
-
-        if( bat_volt_flag )
-        {
-            char charged[] = "Battery is charged";
-            char charging[] = "Battery is charging";
-            char not_full[] = "Battery not full";
-            if(get_batt_voltage_float() > 4.1)
-                lora_send_packet((uint8_t*) charged, 19);
-            if(get_batt_voltage_float() < 4.1 && get_bus_voltage_float() > 4.0)
-                lora_send_packet((uint8_t*) charging, 20);
-            else
-                lora_send_packet((uint8_t*) not_full, 17);
-
-            bat_volt_flag = 0;
         }
 
         WiFiClient client = server.available(); // listen for incoming clients
@@ -229,15 +210,6 @@ int main() {
                     {
                         led_on_flag = 1;
                     }
-
-                    if(currLine[0] == 'G' && currLine[1] == 'E' &&
-                        currLine[2] == 'T' && currLine[3] == ' ' && 
-                        currLine[4] == '/' && currLine[5] == 'b' &&
-                        currLine[6] == 'a' && currLine[7] == 't')
-                    {
-                        bat_volt_flag = 1;
-                    }
-
                 }
             }
             client.stop();

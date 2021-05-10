@@ -113,7 +113,7 @@
     #define WINC1500_SPI_SCK_PIN 10
   #endif
   #if !defined(WINC1500_SP0_MOSI_PIN)
-    #define WINC1500_SPI_MOSI_PIN 15
+    #define WINC1500_SPI_MOSI_PIN 11
   #endif
   #if !defined(WINC1500_SPI_MISO_PIN)
     #define WINC1500_SPI_MISO_PIN 8

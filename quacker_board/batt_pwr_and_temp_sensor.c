@@ -1,5 +1,4 @@
 #include "batt_pwr_and_temp_sensor.h"
-#include "hardware/adc.h"
 #include <stdint.h>
 
 float get_temp(); // Should only be used internally
