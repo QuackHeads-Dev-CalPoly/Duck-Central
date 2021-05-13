@@ -93,7 +93,6 @@ double BMP::calcAltitude() {
 
     // Apply international barometric formula
     alt = ALTITUDE_COEFF * (1 - pow((sensorData.pressure / ALTITUDE_REF_PRESS), (1/ALTITUDE_DIV)) );
-    printf("The alt calc is %lf\n", alt);
 
     // TODO: ERROR CHECK FOR IMPROBABLE ALTITUDE
 

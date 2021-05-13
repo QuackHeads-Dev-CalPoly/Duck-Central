@@ -72,7 +72,7 @@ void Lora::set_op_mode(uint8_t mode) {
         } break;
 
         default:
-            logerror("mode %d does not exist\n", mode);
+            logerror("mode 0x%02x does not exist\n", mode);
             return;
     }
 
@@ -129,7 +129,9 @@ void Lora::init_io(void) {
 }
 
 void Lora::init_modem(void) {
+    printf("sleep pre\n");
     set_op_mode(OPMODE_SLEEP);
+    printf("sleep post\n");
 
     set_frequency(Freq_915);
 

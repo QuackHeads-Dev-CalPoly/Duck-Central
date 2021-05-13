@@ -120,9 +120,7 @@ int8_t BMX160::softReset(struct bmx160Dev *dev) {
     if (dev == NULL) {
         rslt = BMX160_E_NULL_PTR;
     }
-    printf("Writing....... \n");
     writeBmxReg(BMX160_COMMAND_REG_ADDR, data);
-    printf("Write done.....\n");
     sleep_ms(BMX160_SOFT_RESET_DELAY_MS);
     if (rslt == BMX160_OK) {
         BMX160::defaultParamSettg(dev);

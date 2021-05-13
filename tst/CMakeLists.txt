@@ -1,3 +1,26 @@
+#--------------------------- FLIGHT CODE -----------------------------#
+add_executable(spaceducks_ii
+    spaceducks_ii.cpp
+)
+target_link_libraries(spaceducks_ii 
+    PRIVATE
+        lora
+        gps
+        bmp388
+        bmx160
+        satellite
+        board_control
+        driver
+)
+# create UF2 files
+pico_add_extra_outputs(spaceducks_ii)
+# Enable stdout to USB serial
+pico_enable_stdio_usb(spaceducks_ii 1)
+# Disable stdout to UART0
+pico_enable_stdio_uart(spaceducks_ii 0)
+
+
+
 #--------------------------- Range Test -----------------------------#
 add_executable(range
     test_range.cpp
