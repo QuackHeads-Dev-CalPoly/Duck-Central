@@ -8,6 +8,11 @@ int main() {
     printf("Starting\n");
     fflush(stdout);
 
+    gpio_init(0);
+    gpio_pull_down(0);      // Pull down the pin to keep off
+    gpio_set_dir(0, true);  // The pin to be output
+    gpio_put(0, 1);         // Enable GPS
+
     BMP bmpsensor = BMP();
 
     int i = 0;

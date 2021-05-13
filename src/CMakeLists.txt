@@ -18,3 +18,6 @@ add_subdirectory(bmx160)
 
 # BMP388 driver code
 add_subdirectory(bmp388)
+
+# BMX160 driver code
+add_subdirectory(bmx160)

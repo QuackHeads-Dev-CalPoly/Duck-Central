@@ -73,6 +73,25 @@ int Pwr_Cntrl::lora_status()
         return 0;
 }
 
+int Pwr_Cntrl::turn_on_gps() {
+    gpio_put(GPS_PWR_EN, 1);  // Turn on the GPS radio
+    pwr_state = pwr_state | GPS_PWR_BIT_MASK;
+    return 0;
+}
+
+int Pwr_Cntrl::turn_off_gps() {
+    gpio_put(GPS_PWR_EN, 0);                      // Turn off the GPS radio
+    pwr_state = pwr_state & ~(GPS_PWR_BIT_MASK);  //
+    return 0;
+}
+
+int Pwr_Cntrl::gps_status() {
+    if ((pwr_state & GPS_PWR_BIT_MASK) == GPS_PWR_BIT_MASK)
+        return 1;
+    else
+        return 0;
+}
+
 int Pwr_Cntrl::turn_on_wifi()
 {
     gpio_put(WIFI_PWR_EN, 1); // Turn on the WiFi radio
