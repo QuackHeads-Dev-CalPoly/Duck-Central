@@ -22,9 +22,12 @@ int main() {
     int err;
 
     stdio_init_all();
+    gpio_init(28);
+    gpio_set_dir(28, 1);
+    gpio_put(28, 1);
     printf("initializing\n");
     fflush(stdout);
-    sleep_ms(2000);
+    sleep_ms(4000);
 
     // Declare the IridiumSBD object
     IridiumSBD modem(UART_ID, BAUD_RATE, UART_TX_PIN, UART_RX_PIN);
@@ -66,24 +69,34 @@ int main() {
     }
 
     printf("On a scale of 0 to 5, signal quality is currently %d.\n", signalQuality);
+    int count = 1;
+    absolute_time_t curr_time;
+    uint32_t sec_since_boot;
+    while (true) {
+        // Send the message
+        curr_time = get_absolute_time();
+        sec_since_boot = to_ms_since_boot(curr_time) / 1000;
+        printf("Trying to send the message.  This might take several minutes.\n");
+        char buffer[100];
+        sprintf(buffer, "Hello, world! Test Message #%d sent at %d seconds since boot", count, sec_since_boot);
+        err = modem.sendSBDText(buffer);
+        if (err != ISBD_SUCCESS) {
+            printf("sendSBDText failed: error %d\n", err);
+            if (err == ISBD_SENDRECEIVE_TIMEOUT) {
+                printf("Try again with a better view of the sky.\n");
+                fflush(stdout);
+            }
+        }
 
-    // Send the message
-    printf("Trying to send the message.  This might take several minutes.\n");
-    err = modem.sendSBDText("Hello, world!");
-    if (err != ISBD_SUCCESS) {
-        printf("sendSBDText failed: error %d\n", err);
-        if (err == ISBD_SENDRECEIVE_TIMEOUT) {
-            printf("Try again with a better view of the sky.\n");
+        else {
+            printf("Hey, it worked!\n");
             fflush(stdout);
         }
-    }
 
-    else {
-        printf("Hey, it worked!\n");
         fflush(stdout);
+        count++;
+        sleep_ms(60000); //Send every minute
     }
-
-    fflush(stdout);
     return 0;
 }
 
