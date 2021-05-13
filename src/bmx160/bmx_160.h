@@ -26,13 +26,10 @@ THE SOFTWARE.
 */
 
 extern "C" {
-#include <stdio.h>
-
-#include "hardware/i2c.h"
-#include "pico/stdlib.h"
+    #include <stdio.h>
+    #include "hardware/i2c.h"
+    #include "pico/stdlib.h"
 }
-
-#define LITTLE_ENDIAN 1
 
 /** Mask definitions */
 #define BMX160_ACCEL_BW_MASK 0x70
@@ -1214,42 +1211,42 @@ class BMX160 {
      */
     bool begin();
 
-    void setGyroRange(eGyroRange_t bits);
-    void setAccelRange(eAccelRange_t bits);
+    void set_gyro_range(eGyroRange_t bits);
+    void set_accel_range(eAccelRange_t bits);
 
     /*
      * @brief get the magn, gyro and accel data
      * @param pointer to store the magn, gyro and accel data
      */
-    void getAllData(struct bmx160SensorData *magn,
+    void get_all_data(struct bmx160SensorData *magn,
                     struct bmx160SensorData *gyro,
                     struct bmx160SensorData *accel);
     /*
      * @brief reset bmx160 hardware
      * @return BMX160_OK(0) means success
      */
-    bool softReset();
-    void setLowPower();
-    void wakeUp();
+    bool soft_reset();
+    void set_low_power();
+    void wake();
     void enable_low_g_interrupt();
 
    private:
-    int8_t softReset(struct bmx160Dev *dev);
-    void defaultParamSettg(struct bmx160Dev *dev);
+    int8_t soft_reset(struct bmx160Dev *dev);
+    void set_sensor_defaults(struct bmx160Dev *dev);
     float accelRange = BMX160_ACCEL_MG_LSB_2G * 10;
     float gyroRange = BMX160_GYRO_SENSITIVITY_250DPS;
     uint8_t _addr = 0x68;
-    void setMagnConf();
-    
+    void config_magnetometer();
+
     struct bmx160Dev *Obmx160 = {};
 
     struct bmx160SensorData *Omagn = {};
     struct bmx160SensorData *Oaccel = {};
     struct bmx160SensorData *Ogyro = {};
 
-    void readReg(uint8_t reg, uint8_t *pBuf, uint16_t len);
-    void writeReg(uint8_t reg, uint8_t *pBuf, uint16_t len);
-    int8_t readBmxReg(uint8_t reg);
-    void writeBmxReg(uint8_t reg, uint8_t value);
+    void read_reg(uint8_t reg, uint8_t *pBuf, uint16_t len);
+    void write_reg(uint8_t reg, uint8_t *pBuf, uint16_t len);
+    int8_t read_bmx_reg(uint8_t reg);
+    void write_bmx_reg(uint8_t reg, uint8_t value);
     bool scan();
 };

@@ -14,7 +14,7 @@ void popop(uint gpio, uint32_t events) {
 
     gpio_put(LED_PIN, 1);
 
-    printf("pop\n");
+    printf("pop!!\n");
     fflush(stdout);
 
     gpio_set_irq_enabled(gpio, events, true);
@@ -33,36 +33,20 @@ int main() {
     if (bmx160.begin() != true) {
         printf("init was false\n");
     }
-    //bmx160.setLowPower();   //disable the gyroscope and accelerometer sensor
-    //bmx160.wakeUp();        //enable the gyroscope and accelerometer sensor
-    //bmx160.softReset();     //reset the sensor
 
     gpio_set_irq_enabled_with_callback(INT_1_PIN, GPIO_IRQ_EDGE_RISE, true, &popop);
 
     bmx160.enable_low_g_interrupt();
 
-    /** @typedef enum{eGyroRange_2000DPS,
-     *                eGyroRange_1000DPS,
-     *                eGyroRange_500DPS,
-     *                eGyroRange_250DPS,
-     *                eGyroRange_125DPS
-     *                }eGyroRange_t;
-     **/
-    // bmx160.setGyroRange(eGyroRange_500DPS);
+    //bmx160.set_gyro_range(eGyroRange_500DPS);
 
-    /** @typedef enum{eAccelRange_2G,
-     *                eAccelRange_4G,
-     *                eAccelRange_8G,
-     *                eAccelRange_16G
-     *                }eAccelRange_t;
-     */
-    // bmx160.setAccelRange(eAccelRange_4G);
+    //bmx160.set_accel_range(eAccelRange_4G);
 
     bmx160SensorData magnetometer, gyroscope, accelerometer;
 
     while(1) {
         /* Get a new sensor event */
-        bmx160.getAllData(&magnetometer, &gyroscope, &accelerometer);
+        bmx160.get_all_data(&magnetometer, &gyroscope, &accelerometer);
     
         /* Display the magnetometer results (magn is magnetometer in uTesla) */
         printf("Magnetometer (uT):\n");

@@ -52,59 +52,59 @@ const uint8_t int_mask_lookup_table[13] = {BMX160_INT1_SLOPE_MASK,
 
 bool BMX160::begin() {
     if (scan() == true) {
-        softReset();
-        writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x11);
+        soft_reset();
+        write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x11);
         sleep_ms(50);
         /* Set gyro to normal mode */
-        writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x15);
+        write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x15);
         sleep_ms(100);
         /* Set mag to normal mode */
-        writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x19);
+        write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x19);
         sleep_ms(10);
-        setMagnConf();
+        config_magnetometer();
         return true;
     } else {
         return false;
     }
 }
 
-void BMX160::setLowPower() {
-    softReset();
+void BMX160::set_low_power() {
+    soft_reset();
     sleep_ms(100);
-    setMagnConf();
+    config_magnetometer();
     sleep_ms(100);
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x12);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x12);
     sleep_ms(100);
     /* Set gyro to normal mode */
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x17);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x17);
     sleep_ms(100);
     /* Set mag to normal mode */
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x1B);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x1B);
     sleep_ms(100);
 }
 
-void BMX160::wakeUp() {
-    softReset();
+void BMX160::wake() {
+    soft_reset();
     sleep_ms(100);
-    setMagnConf();
+    config_magnetometer();
     sleep_ms(100);
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x11);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x11);
     sleep_ms(100);
     /* Set gyro to normal mode */
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x15);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x15);
     sleep_ms(100);
     /* Set mag to normal mode */
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, 0x19);
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, 0x19);
     sleep_ms(100);
 }
 
-bool BMX160::softReset() {
+bool BMX160::soft_reset() {
     int8_t rslt = BMX160_OK;
     if (Obmx160 == NULL) {
         rslt = BMX160_E_NULL_PTR;
     }
 
-    rslt = softReset(Obmx160);
+    rslt = soft_reset(Obmx160);
     printf("Reset %d\n", rslt);
 
     if (rslt == 0) {
@@ -114,23 +114,21 @@ bool BMX160::softReset() {
     }
 }
 
-int8_t BMX160::softReset(struct bmx160Dev *dev) {
+int8_t BMX160::soft_reset(struct bmx160Dev *dev) {
     int8_t rslt = BMX160_OK;
     uint8_t data = BMX160_SOFT_RESET_CMD;
     if (dev == NULL) {
         rslt = BMX160_E_NULL_PTR;
     }
-    printf("Writing....... \n");
-    writeBmxReg(BMX160_COMMAND_REG_ADDR, data);
-    printf("Write done.....\n");
+    write_bmx_reg(BMX160_COMMAND_REG_ADDR, data);
     sleep_ms(BMX160_SOFT_RESET_DELAY_MS);
     if (rslt == BMX160_OK) {
-        BMX160::defaultParamSettg(dev);
+        BMX160::set_sensor_defaults(dev);
     }
     return rslt;
 }
 
-void BMX160::defaultParamSettg(struct bmx160Dev *dev) {
+void BMX160::set_sensor_defaults(struct bmx160Dev *dev) {
     // Initializing accel and gyro params with
     dev->gyroCfg.bw = BMX160_GYRO_BW_NORMAL_MODE;
     dev->gyroCfg.odr = BMX160_GYRO_ODR_100HZ;
@@ -146,28 +144,28 @@ void BMX160::defaultParamSettg(struct bmx160Dev *dev) {
     dev->prevAccelCfg = dev->accelCfg;
 }
 
-void BMX160::setMagnConf() {
-    writeBmxReg(BMX160_MAGN_IF_0_ADDR, 0x80);
+void BMX160::config_magnetometer() {
+    write_bmx_reg(BMX160_MAGN_IF_0_ADDR, 0x80);
     sleep_ms(50);
     // Sleep mode
-    writeBmxReg(BMX160_MAGN_IF_3_ADDR, 0x01);
-    writeBmxReg(BMX160_MAGN_IF_2_ADDR, 0x4B);
+    write_bmx_reg(BMX160_MAGN_IF_3_ADDR, 0x01);
+    write_bmx_reg(BMX160_MAGN_IF_2_ADDR, 0x4B);
     // REPXY regular preset
-    writeBmxReg(BMX160_MAGN_IF_3_ADDR, 0x04);
-    writeBmxReg(BMX160_MAGN_IF_2_ADDR, 0x51);
+    write_bmx_reg(BMX160_MAGN_IF_3_ADDR, 0x04);
+    write_bmx_reg(BMX160_MAGN_IF_2_ADDR, 0x51);
     // REPZ regular preset
-    writeBmxReg(BMX160_MAGN_IF_3_ADDR, 0x0E);
-    writeBmxReg(BMX160_MAGN_IF_2_ADDR, 0x52);
+    write_bmx_reg(BMX160_MAGN_IF_3_ADDR, 0x0E);
+    write_bmx_reg(BMX160_MAGN_IF_2_ADDR, 0x52);
 
-    writeBmxReg(BMX160_MAGN_IF_3_ADDR, 0x02);
-    writeBmxReg(BMX160_MAGN_IF_2_ADDR, 0x4C);
-    writeBmxReg(BMX160_MAGN_IF_1_ADDR, 0x42);
-    writeBmxReg(BMX160_MAGN_CONFIG_ADDR, 0x08);
-    writeBmxReg(BMX160_MAGN_IF_0_ADDR, 0x03);
+    write_bmx_reg(BMX160_MAGN_IF_3_ADDR, 0x02);
+    write_bmx_reg(BMX160_MAGN_IF_2_ADDR, 0x4C);
+    write_bmx_reg(BMX160_MAGN_IF_1_ADDR, 0x42);
+    write_bmx_reg(BMX160_MAGN_CONFIG_ADDR, 0x08);
+    write_bmx_reg(BMX160_MAGN_IF_0_ADDR, 0x03);
     sleep_ms(50);
 }
 
-void BMX160::setGyroRange(eGyroRange_t bits) {
+void BMX160::set_gyro_range(eGyroRange_t bits) {
     switch (bits) {
         case eGyroRange_125DPS:
             gyroRange = BMX160_GYRO_SENSITIVITY_125DPS;
@@ -190,7 +188,7 @@ void BMX160::setGyroRange(eGyroRange_t bits) {
     }
 }
 
-void BMX160::setAccelRange(eAccelRange_t bits) {
+void BMX160::set_accel_range(eAccelRange_t bits) {
     switch (bits) {
         case eAccelRange_2G:
             accelRange = BMX160_ACCEL_MG_LSB_2G * 10;
@@ -210,13 +208,13 @@ void BMX160::setAccelRange(eAccelRange_t bits) {
     }
 }
 
-void BMX160::getAllData(struct bmx160SensorData *magn,
+void BMX160::get_all_data(struct bmx160SensorData *magn,
                         struct bmx160SensorData *gyro,
                         struct bmx160SensorData *accel) {
 
     uint8_t data[23] = {0};
     
-    readReg(BMX160_MAG_DATA_ADDR, data, 23);
+    read_reg(BMX160_MAG_DATA_ADDR, data, 23);
 
     if (magn) {
         magn->x = (int16_t)((data[1] << 8) | data[0]);
@@ -246,23 +244,23 @@ void BMX160::getAllData(struct bmx160SensorData *magn,
     }
 }
 
-int8_t BMX160::readBmxReg(uint8_t reg) {
+int8_t BMX160::read_bmx_reg(uint8_t reg) {
     uint8_t buf[1] = {0};
-    readReg(reg, buf, sizeof(buf));
+    read_reg(reg, buf, sizeof(buf));
     return buf[1];
 }
 
-void BMX160::writeBmxReg(uint8_t reg, uint8_t value) {
+void BMX160::write_bmx_reg(uint8_t reg, uint8_t value) {
     uint8_t buffer[1] = {value};
-    writeReg(reg, buffer, 1);
+    write_reg(reg, buffer, 1);
 }
 
-void BMX160::writeReg(uint8_t reg, uint8_t *pBuf, uint16_t len) {
+void BMX160::write_reg(uint8_t reg, uint8_t *pBuf, uint16_t len) {
     uint8_t con_buff[2] = {reg, pBuf[0]};
     i2c_write_blocking(i2c0, _addr, con_buff, 2, false);
 }
 
-void BMX160::readReg(uint8_t reg, uint8_t *pBuf, uint16_t len) {
+void BMX160::read_reg(uint8_t reg, uint8_t *pBuf, uint16_t len) {
     i2c_write_blocking(i2c0, _addr, &reg, 1, true);
     i2c_read_blocking(i2c0, _addr, pBuf, len, false);
 }
@@ -280,74 +278,25 @@ void BMX160::enable_low_g_interrupt() {
     // INT 2 is GP26
 
     // enable the low g interrupt on INT1
-    writeBmxReg(BMX160_INT_ENABLE_1_ADDR, BMX160_LOW_G_INT_EN_MASK);
+    write_bmx_reg(BMX160_INT_ENABLE_1_ADDR, BMX160_LOW_G_INT_EN_MASK);
 
     // push-pull interrupt pin
-    writeBmxReg(BMX160_INT_OUT_CTRL_ADDR,
+    write_bmx_reg(BMX160_INT_OUT_CTRL_ADDR,
                 BMX160_INT1_OUTPUT_EN_MASK |  // enable this as an output interrupt on INT1
                 BMX160_INT1_OUTPUT_TYPE_MASK  // active high
     );
 
     // make the low g interrupt come out on INT1
-    writeBmxReg(BMX160_INT_MAP_0_ADDR, BMX160_INT1_LOW_G_MASK);
+    write_bmx_reg(BMX160_INT_MAP_0_ADDR, BMX160_INT1_LOW_G_MASK);
 
     // must hold below threshold + hysteresis value for 300ms
-    writeBmxReg(BMX160_INT_LOWHIGH_0_ADDR, BMX160_INT_LOWHIGH_TIME_THRESH_300_MS);
+    write_bmx_reg(BMX160_INT_LOWHIGH_0_ADDR, BMX160_INT_LOWHIGH_TIME_THRESH_300_MS);
 
     // 0.1g is our threshold
-    writeBmxReg(BMX160_INT_LOWHIGH_1_ADDR, BMX160_INT_LOWHIGH_G_THRESH_0_1_G);
+    write_bmx_reg(BMX160_INT_LOWHIGH_1_ADDR, BMX160_INT_LOWHIGH_G_THRESH_0_1_G);
 
-    writeBmxReg(BMX160_INT_LOWHIGH_2_ADDR, 
+    write_bmx_reg(BMX160_INT_LOWHIGH_2_ADDR, 
                 BMX160_INT_LOWHIGH_SUMMING_MODE |  // 3-axis sum of accelerometer
                 BMX160_INT_LOWHIGH_HYST_125_MG     // 0.125g hysteresis value
     );
 }
-
-// void anyMotionInterrupt_set() {
-
-//       int_config.int_channel = BMI160_INT_CHANNEL_1;   // na - Select the
-//       interrupt channel int_config.int_type = BMI160_ACC_ANY_MOTION_INT; //
-//       na - choosing Any Motion Interrupt
-
-//       // na - the following configuration is written to registers (0x53)
-//       INT_OUT_CTRL & (0x54) INT_LATCH  see datasheet pg71 section 2.11.20
-//       int_config.int_pin_settg.output_en = BMI160_ENABLE;         // na -
-//       Enabling interrupt pin as output -> register (0x53)
-//       int_config.int_pin_settg.output_mode = BMI160_DISABLE;      // na -
-//       Selecting push-pull mode for interrupt pin -> register (0x53)
-//       int_config.int_pin_settg.output_type = BMI160_DISABLE;      // na -
-//       Setting interrupt pin to active low -> register (0x53)
-//       int_config.int_pin_settg.edge_ctrl = BMI160_ENABLE;         // na -
-//       Enabling edge trigger -> register (0x53)
-//       int_config.int_pin_settg.input_en = BMI160_DISABLE;         // na -
-//       Disabling interrupt pin to act as input -> register (0x54)
-//       int_config.int_pin_settg.latch_dur = BMI160_LATCH_DUR_NONE; // na -
-//       non-latched output -> register (0x54)
-
-//       // na - Select the Any Motion Interrupt parameter
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_en =
-//       BMI160_ENABLE; // na - 1- Enable the any-motion, 0- disable any-motion
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_x = BMI160_ENABLE;
-//       // na - Enabling x-axis for any motion interrupt - monitor x axis
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_y = BMI160_ENABLE;
-//       // na - Enabling y-axis for any motion interrupt - monitor y axis
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_z = BMI160_ENABLE;
-//       // na - Enabling z-axis for any motion interrupt - monitor z axis
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_dur = 2; // na -
-//       any-motion duration. This is the consecutive datapoints -> see
-//       datasheet pg32 section 2.6.1 <int_anym_dur> and pg78
-//       int_config.int_type_cfg.acc_any_motion_int.anymotion_thr = 20; // na -
-//       An interrupt will be generated if the absolute value of two consecutive
-//       accelarion signal exceeds the threshold value -> see datasheet pg32
-//       section 2.6.1 <int_anym_th> and pg78 INT_MOTION[1]
-//                                                                                // na - (2-g range) -> (anymotion_thr) * 3.91 mg, (4-g range) -> (anymotion_thr) * 7.81 mg, (8-g range) ->(anymotion_thr) * 15.63 mg, (16-g range) -> (anymotion_thr) * 31.25 mg
-
-//       rslt = bmi160_set_int_config(&int_config, &sensor); // na - Set
-//       Any-motion interrupt NRF_LOG_INFO("rslt: %d", rslt);
-
-//       if (rslt != BMI160_OK) {
-//         NRF_LOG_INFO("BMI160 Any-motion interrupt configuration failure!\n");
-//       } else {
-//         NRF_LOG_INFO("BMI160 Any-motion interrupt configuration done!\n");
-//       }
-//     }
