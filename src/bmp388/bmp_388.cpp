@@ -6,52 +6,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 #include "pico/stdlib.h"
 
 
-#ifndef BMP3_DOUBLE_PRECISION_COMPENSATION
-
-/* 0 degree celsius */
-#define BMP3_MIN_TEMPERATURE  INT16_C(0)
-
-/* 40 degree celsius */
-#define BMP3_MAX_TEMPERATURE  INT16_C(4000)
-
-/* 900 hecto Pascals */
-#define BMP3_MIN_PRESSURE     UINT32_C(90000)
-
-/* 1100 hecto Pascals */
-#define BMP3_MAX_PRESSURE     UINT32_C(110000)
-
-#else
-
-/* 0 degree celsius */
-#define BMP3_MIN_TEMPERATURE  (0.0f)
-
-/* 40 degree celsius */
-#define BMP3_MAX_TEMPERATURE  (40.0f)
-
-/* 900 hecto Pascals */
-#define BMP3_MIN_PRESSURE     (900.0f)
-
-/* 1100 hecto Pascals */
-#define BMP3_MAX_PRESSURE     (1100.0f)
-#endif
-
-static int8_t analyze_sensor_data(const struct bmp3_data *sens_data);
-
 // Hardware address for BMP 388
-static uint8_t addr = 0x76;
+static uint8_t _addr = 0x76;
 
-// Constructor: performs all required pre-setup tasks.
+// Constructor: performs all required pre-setup tasks for the Pico and BMP388
 BMP::BMP() {
-    int8_t result = 0;
-    int i = 0;
-    uint8_t buff[3] = { 0 };
-
-    //stdio_init_all();
-
-    // set up i2c stuff on the Pico
+    int8_t res = 0;
+    
+    // set up I2C on the Pico for BMP388
     i2c_init(i2c0, 400*1000);
     
     gpio_set_function(PICO_BMP_I2C_SDA_PIN, GPIO_FUNC_I2C);
@@ -65,9 +31,41 @@ BMP::BMP() {
     bmp388.read = (bmp3_read_fptr_t)&bmpRead;
     bmp388.write = (bmp3_write_fptr_t)&bmpWrite;
 
-    // perform selftest for error checking
+    // debug: selftest to verify operation
     //printf("Selftest result is: %d\n", bmp3_selftest_check(&bmp388));
     //fflush(stdout);
+
+    // Perform soft reset of sensor before initialization
+    if (bmp3_soft_reset(&bmp388) != BMP3_OK) {
+        printf("ERROR: Unable to soft-reset the BMP388 sensor\n");
+        return;
+    }
+
+    if (bmp3_init(&bmp388) != BMP3_OK) {
+        printf("ERROR: Unable to initialize the BMP388 sensor\n");
+        return;
+    }
+
+    // Configure the optimal settings for payload
+    if ((res = setSensorSettings()) != BMP3_OK) {
+        printf("ERROR: Unable to set the BMP388 sensor settings \n");
+        printf("Res is %d\n", res);
+        return;
+    }
+
+    // Set sensor to forced mode to perform reading when queried
+    if (setPowerModeForced() != BMP3_OK) {
+        printf("ERROR: Unable to set the BMP388 power mode\n");
+        return;
+    }
+
+}
+
+
+
+// Queries the BMP388 sensor and fills structs with relevant data
+int8_t BMP::performReading() {
+    int8_t res = 0;
 
     /* Variable used to select the sensor component */
     uint8_t sensor_comp;
@@ -75,29 +73,41 @@ BMP::BMP() {
     // Use Pressure and Temperature readings    
     sensor_comp = BMP3_PRESS | BMP3_TEMP;
 
-    /* Used to select the settings user needs to change */
+    // Set the BMP to forced mode before querying for data
+    setPowerModeForced();
+
+    if ((res = bmp3_get_sensor_data(sensor_comp, &sensorData, &bmp388)) != BMP3_OK) {
+        printf("ERROR: Unable to get BMP388 sensor data\n");
+        return res;
+    }
+
+    // Perform Altitude calculation
+    altitude = calcAltitude();
+
+    return 0;
+}
+
+// Returns the altitude height in meters as a double
+double BMP::calcAltitude() {
+    double alt = 0.0;
+
+    // Apply international barometric formula
+    alt = ALTITUDE_COEFF * (1 - pow((sensorData.pressure / ALTITUDE_REF_PRESS), (1/ALTITUDE_DIV)) );
+    printf("The alt calc is %lf\n", alt);
+
+    // TODO: ERROR CHECK FOR IMPROBABLE ALTITUDE
+
+    return alt;
+}
+
+int8_t BMP::setPowerModeForced() {
+    bmp388.settings.op_mode = BMP3_MODE_FORCED;
+    return bmp3_set_op_mode(&bmp388);
+}
+
+int8_t BMP::setSensorSettings() {
     uint16_t settings_sel;
-
-    /* Variable used to store the compensated data */
-    struct bmp3_data data = { 0 };
-
-
-    result = bmp3_soft_reset(&bmp388);
-
-    printf("Result of soft reset is %d\n", result);
-
-
-    result = bmp3_init(&bmp388);
-
-    // printf("Result of init is %d\n", result);
-
-    // bmp388.settings.press_en = BMP3_ENABLE;
-    // bmp388.settings.temp_en = BMP3_ENABLE;
-    // bmp388.settings.odr_filter.press_os = BMP3_OVERSAMPLING_8X;
-    // bmp388.settings.odr_filter.temp_os = BMP3_OVERSAMPLING_2X;
-    // bmp388.settings.odr_filter.iir_filter = BMP3_IIR_FILTER_COEFF_15;
-    // bmp388.settings.odr_filter.odr = BMP3_ODR_50_HZ;
-
+    
     bmp388.settings.press_en = BMP3_ENABLE;
     bmp388.settings.temp_en = BMP3_ENABLE;
     bmp388.settings.odr_filter.press_os = BMP3_OVERSAMPLING_8X;
@@ -106,88 +116,31 @@ BMP::BMP() {
     bmp388.settings.odr_filter.odr = BMP3_ODR_25_HZ;
 
     settings_sel = BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN | BMP3_SEL_PRESS_OS | BMP3_SEL_TEMP_OS | BMP3_SEL_ODR;
-    // settings_sel = BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN | BMP3_SEL_ODR;
 
-
-    result = bmp3_set_sensor_settings(settings_sel, &bmp388);
-
-    // bmp388.delay_us(40000, bmp388.intf_ptr);
-
-    // printf("The sensor set result was %d\n", result);
-    // fflush(stdout);
-
-    // bmpRead(0x1B, buff, 1, bmp388.intf_ptr);
-    // printf("The status reg is AFTER: %02x\n", buff[0]);
-
-
-    // bmp388.settings.op_mode = BMP3_MODE_FORCED;
-    // bmp3_set_op_mode(&bmp388);
-
-    bmp388.settings.op_mode = BMP3_MODE_NORMAL;
-    bmp3_set_op_mode(&bmp388);
-    // printf("power mode set result is: %d\n", result);
-
-    // uint8_t pwr = 0;
-    // result = bmp3_get_regs(BMP3_REG_PWR_CTRL, &pwr, 1, &bmp388);
-    // printf("Chip id is: %x, result is: %d\n", pwr, result);
-
-
-    // bmp3_get_sensor_data(sensor_comp, &data, &bmp388);
-
-    // printf("Sensor data temp: %lf press: %lf\n", data.temperature, data.pressure/100.0);
-
-    // printf("Analyzed sensor data: %d\n", analyze_sensor_data(&data));
-    // fflush(stdout);
-
-    // // for reply
-    // uint8_t chip_id = 0;
-    // result = bmp3_get_regs(BMP3_REG_CHIP_ID, &chip_id, 1, &bmp388);
-    // printf("Chip id is: %x, result is: %d\n", chip_id, result);
-
-    // uint8_t read_data = 1;
-    // uint8_t reg = 0x1D;
-    // result = bmp3_get_regs(reg, &read_data, 1, &bmp388);
-    // printf("ODR reg is : %x, result: %d\n", read_data, result);
-    // read_data = BMP3_ODR_25_HZ;
-    // result = bmp3_set_regs(&reg, &read_data, 1, &bmp388);
-    // printf("Result after write is: %d\n", result);
-    // result = bmp3_get_regs(reg, &read_data, 1, &bmp388);
-    // printf("ODR reg is : %x, result: %d\n", read_data, result);
-
-
-    while(1) {
-        bmp388.delay_us(1000000, bmp388.intf_ptr);
-
-        bmp3_get_sensor_data(sensor_comp, &data, &bmp388);
-
-        printf("Sensor data temp: %lf press: %lf\n", data.temperature, data.pressure/100.0);
-
-        printf("Analyzed sensor data: %d\n", analyze_sensor_data(&data));
-        fflush(stdout);
-        printf("\n");
-        bmp388.delay_us(40000, bmp388.intf_ptr);
-    }
-
+    return bmp3_set_sensor_settings(settings_sel, &bmp388);
 }
 
-// Writes a single byte of data to the register specified
+// (Burst) Writes to the BMP at the register address specified via I2C
 BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_t len, void *intf_ptr) {
-    // To write to a register, combine the reg_addr and the byte of data into one buffer
-    //uint8_t write_buff[2] = {reg_addr, write_data[0]};
     // Combine the reg_addr into one concatenated buffer with the write data for I2C comm.
     uint8_t *write_buff = (uint8_t *)malloc(sizeof(uint8_t) + sizeof(write_data));
     memcpy(write_buff, &reg_addr, sizeof(uint8_t));
     memcpy(&write_buff[1], write_data, len);
 
-    int8_t write_res = i2c_write_blocking(i2c0, addr, write_buff, 2, false);
+    // Debug
+    // for (int i = 0; i < (sizeof(uint8_t) + sizeof(write_data)); i++) {
+    //     printf("Contents of the buff to write at %d is: %02x\n", i, write_data[i]);
+    // }
+
+    int8_t write_res = i2c_write_blocking(i2c0, _addr, write_buff, 2, false);
     return write_res > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;
 }
 
 BMP3_INTF_RET_TYPE bmpRead(uint8_t reg_addr, uint8_t *read_data, uint32_t len, void *intf_ptr) {
     // To read, first write the register address wanting to be read
-    i2c_write_blocking(i2c0, addr, &reg_addr, sizeof(uint8_t), true);
+    i2c_write_blocking(i2c0, _addr, &reg_addr, sizeof(uint8_t), true);
 
-    int8_t write_result = i2c_read_blocking(i2c0, addr, read_data, len, false);
+    int8_t write_result = i2c_read_blocking(i2c0, _addr, read_data, len, false);
 
     return write_result > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;
 }
@@ -195,25 +148,4 @@ BMP3_INTF_RET_TYPE bmpRead(uint8_t reg_addr, uint8_t *read_data, uint32_t len, v
 BMP3_INTF_RET_TYPE bmpDelay(uint32_t amt, void *intf_ptr) {
     sleep_us(amt);
     return BMP3_INTF_RET_SUCCESS;
-}
-
-
-static int8_t analyze_sensor_data(const struct bmp3_data *sens_data)
-{
-    int8_t rslt = BMP3_SENSOR_OK;
-
-    if ((sens_data->temperature < BMP3_MIN_TEMPERATURE) || (sens_data->temperature > BMP3_MAX_TEMPERATURE))
-    {
-        rslt = BMP3_IMPLAUSIBLE_TEMPERATURE;
-    }
-
-    if (rslt == BMP3_SENSOR_OK)
-    {
-        if ((sens_data->pressure / 100 < BMP3_MIN_PRESSURE) || (sens_data->pressure / 100 > BMP3_MAX_PRESSURE))
-        {
-            rslt = BMP3_IMPLAUSIBLE_PRESSURE;
-        }
-    }
-
-    return rslt;
 }

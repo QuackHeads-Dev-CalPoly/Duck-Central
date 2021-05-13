@@ -845,13 +845,7 @@ int8_t bmp3_set_regs(uint8_t *reg_addr, const uint8_t *reg_data, uint32_t len, s
                 temp_len = len;
             }
 
-            sleep_ms(5000);
-            gpio_init(LED_PIN);
-            gpio_set_dir(LED_PIN, GPIO_OUT);gpio_put(LED_PIN, 1);
-
             dev->intf_rslt = dev->write(reg_addr[0], temp_buff, temp_len, dev->intf_ptr);
-
-            printf("Result of write = %d\n", dev->intf_rslt);
 
             /* Check for communication error */
             if (dev->intf_rslt != BMP3_INTF_RET_SUCCESS)
