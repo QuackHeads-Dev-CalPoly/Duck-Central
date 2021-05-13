@@ -12,3 +12,5 @@ add_subdirectory(board_control)
 
 # RockBlock code
 add_subdirectory(satellite)
+
+add_subdirectory(bmx160)

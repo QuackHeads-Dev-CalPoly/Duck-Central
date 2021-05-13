@@ -1,10 +1,12 @@
 # Create a library which includes the source files
 # Any number of sources could be listed here.
-add_library (gps gps.c minmea.c)
+add_library (gps gps.cpp minmea.c)
 
 target_link_libraries(gps
-    PRIVATE
+    
         hardware_uart
+        hardware_dma
+        hardware_irq
 )
 
 # Make sure the compiler can find include files for our library
