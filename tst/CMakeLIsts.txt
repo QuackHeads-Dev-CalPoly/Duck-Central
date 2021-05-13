@@ -1,14 +1,12 @@
 #--------------------------- Range Test -----------------------------#
 add_executable(range
-    test_range.c
+    test_range.cpp
 )
 target_link_libraries(range 
     PRIVATE
         lora
         gps
         board_control
-        hardware_spi 
-        hardware_uart 
         hardware_gpio
 )
 # create UF2 files
