@@ -1,5 +1,5 @@
-#ifndef __POWER_CONTROLLER_H__
-#define __POWER_CONTROLLER_H__
+#ifndef __POWER_CONTROL_H__
+#define __POWER_CONTROL_H__
 
 extern "C"
 {
@@ -19,31 +19,31 @@ extern "C"
 #define PERIPH_5V_PWR_EN 28
 #define PERIPH_5V_BIT_MASK 0x01
 
-class Pwr_Cntrl
+class PowerControl
 {
 
     private: 
         uint8_t pwr_state;
 
     public:
-        Pwr_Cntrl();
+        PowerControl();
 
         int turn_off_gps();
         int turn_on_gps();
-        int gps_status();
+        bool gps_enabled();
 
         int turn_off_lora();
         int turn_on_lora();
-        int lora_status();
+        bool lora_enabled();
 
         int turn_off_wifi();
         int turn_on_wifi();
-        int wifi_status();
+        bool wifi_enabled();
 
         int turn_off_5v_pwr();
         int turn_on_5v_pwr();
-        int periph_5v_status();
+        bool periph_5v_enabled();
 };
 
 
-#endif /* PWR Controller */
+#endif /* Power Controller */

@@ -4,9 +4,9 @@ extern "C"
     #include "hardware/gpio.h"
 }
 
-#include "power_controller.h"
+#include "power_control.h"
 
-Pwr_Cntrl::Pwr_Cntrl()
+PowerControl::PowerControl()
 {
     gpio_init(PERIPH_5V_PWR_EN); // Init
     gpio_pull_down(PERIPH_5V_PWR_EN); // Pull down the pin
@@ -29,70 +29,92 @@ Pwr_Cntrl::Pwr_Cntrl()
     gpio_put(WIFI_PWR_EN, 0); // Keep it disabled
 }
 
-int Pwr_Cntrl::turn_on_5v_pwr()
+int PowerControl::turn_on_5v_pwr()
 {
     gpio_put(PERIPH_5V_PWR_EN, 1); // Turn on the 5V boost
     pwr_state = pwr_state | PERIPH_5V_BIT_MASK; // Set memory state
     return 0;
 }
 
-int Pwr_Cntrl::turn_off_5v_pwr()
+int PowerControl::turn_off_5v_pwr()
 {
     gpio_put(PERIPH_5V_PWR_EN, 0); // Turn off the 5V boost
     pwr_state = pwr_state & ~(PERIPH_5V_BIT_MASK); // Set memory state
     return 0;
 }
 
-int Pwr_Cntrl::periph_5v_status()
+bool PowerControl::periph_5v_enabled()
 {
     if((pwr_state & PERIPH_5V_BIT_MASK) == PERIPH_5V_BIT_MASK)
-        return 1;
+        return true;
     else
-        return 0;
+        return false;
 }
 
-int Pwr_Cntrl::turn_on_lora()
+int PowerControl::turn_on_lora()
 {
     gpio_put(LORA_PWR_EN, 1); // Turn on the LoRa radio
     pwr_state = pwr_state | LORA_PWR_BIT_MASK;
     return 0;
 }
 
-int Pwr_Cntrl::turn_off_lora()
+int PowerControl::turn_off_lora()
 {
     gpio_put(LORA_PWR_EN, 0); // Turn off the LoRa radio
     pwr_state = pwr_state & ~(LORA_PWR_BIT_MASK); //
     return 0;
 }
 
-int Pwr_Cntrl::lora_status()
+bool PowerControl::lora_enabled()
 {
     if((pwr_state & LORA_PWR_BIT_MASK) == LORA_PWR_BIT_MASK)
-        return 1;
+        return true;
     else
-        return 0;
+        return false;
 }
 
-int Pwr_Cntrl::turn_on_wifi()
+int PowerControl::turn_on_wifi()
 {
     gpio_put(WIFI_PWR_EN, 1); // Turn on the WiFi radio
     pwr_state = pwr_state | WIFI_PWR_BIT_MASK;
     return 0;
 }
 
-int Pwr_Cntrl::turn_off_wifi()
+int PowerControl::turn_off_wifi()
 {
     gpio_put(WIFI_PWR_EN, 0); // Turn off the WiFi radio
     pwr_state = pwr_state & ~(WIFI_PWR_BIT_MASK);
     return 0;
 }
 
-int Pwr_Cntrl::wifi_status()
+bool PowerControl::wifi_enabled()
 {
     if((pwr_state & WIFI_PWR_BIT_MASK) == WIFI_PWR_BIT_MASK)
-        return 1;
+        return true;
     else
-        return 0;
+        return false;
+}
+
+int PowerControl::turn_on_gps()
+{
+    gpio_put(GPS_PWR_EN, 1); // Turn on the GPS radio
+    pwr_state = pwr_state | GPS_PWR_BIT_MASK;
+    return 0;
+}
+
+int PowerControl::turn_off_gps()
+{
+    gpio_put(GPS_PWR_EN, 0); // Turn off the GPS radio
+    pwr_state = pwr_state & ~(GPS_PWR_BIT_MASK);
+    return 0;
+}
+
+bool PowerControl::gps_enabled()
+{
+    if((pwr_state & GPS_PWR_BIT_MASK) == GPS_PWR_BIT_MASK)
+        return true;
+    else
+        return false;
 }
 
 
