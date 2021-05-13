@@ -25,10 +25,12 @@ typedef struct {
     bool rmc_valid;
     struct minmea_sentence_gga gga;
     bool gga_valid;
+    struct minmea_sentence_vtg vtg;
+    bool vtg_valid;
 } GPSData;
 
 class GPS {
-public:
+   public:
     GPS();
     float get_latitude(void);
     float get_longitude(void);

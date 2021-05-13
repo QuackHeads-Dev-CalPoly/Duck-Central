@@ -19,7 +19,7 @@
 #endif
 
 #if BOARD_REVISION >= 3
-    #define GPS_RX_PIN 2
+    #define GPS_RX_PIN 1
 
     #define LORA_CS_PIN 9
     #define LORA_MOSI_PIN 11
