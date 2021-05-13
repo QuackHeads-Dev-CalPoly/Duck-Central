@@ -10,6 +10,15 @@ int main() {
 
     BMP bmpsensor = BMP();
 
+    int i = 0;
+    while (i < 50) {
+        bmpsensor.performReading();
+        printf("After reading, pressure is: %lf and Temp is %lf\n", bmpsensor.getPressure(), bmpsensor.getTemperature());
+        fflush(stdout);
+        sleep_ms(2000);
+    }
+    
+
     printf("Finished\n");
 
     return 0;
