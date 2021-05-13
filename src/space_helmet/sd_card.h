@@ -15,6 +15,9 @@ extern "C"
 class sd_card
 {
 
+    private:
+        uint8_t type = 0x00; // SD1 default
+
     public:
         sd_card();
 

@@ -19,11 +19,6 @@ int main()
 
     printf("Initing SD card\n");
     my_sd.init_sd_card();
-    sleep_ms(500);
-    my_sd.send_cmd8();
-    //my_sd.send_cmd58();
-    my_sd.send_acmd41();
-    my_sd.send_cmd58();
     printf("Done\n");
     return 0;
 }
