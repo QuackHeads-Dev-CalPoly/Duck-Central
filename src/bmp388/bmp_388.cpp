@@ -93,11 +93,8 @@ double BMP::calcAltitude() {
 
     // Apply international barometric formula
     alt = ALTITUDE_COEFF * (1 - pow((sensorData.pressure / ALTITUDE_REF_PRESS), (1/ALTITUDE_DIV)) );
-    printf("The alt calc is %lf\n", alt);
 
-    // TODO: ERROR CHECK FOR IMPROBABLE ALTITUDE
-
-    return alt;
+    return alt > 0 ? alt : 0.0;
 }
 
 int8_t BMP::setPowerModeForced() {
@@ -134,7 +131,7 @@ BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_
 
     int8_t write_res = i2c_write_blocking(i2c0, _addr, write_buff, 2, false);
 
-    // free the write buff
+    // free the allocated memory
     free(write_buff);
 
     return write_res > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;

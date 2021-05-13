@@ -14,6 +14,7 @@ int main() {
     while (i < 50) {
         bmpsensor.performReading();
         printf("After reading, pressure is: %lf and Temp is %lf\n", bmpsensor.getPressure(), bmpsensor.getTemperature());
+        printf("Altitude in meters: %lf\n", bmpsensor.getAltitude());
         fflush(stdout);
         sleep_ms(2000);
     }

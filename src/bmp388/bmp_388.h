@@ -11,6 +11,7 @@
 #define ALTITUDE_DIV 5.255
 // Pascals
 #define ALTITUDE_REF_PRESS 101325
+#define ALTITUDE_ERROR -1
 
 class BMP {
     public:
