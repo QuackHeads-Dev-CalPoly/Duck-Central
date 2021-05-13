@@ -12,3 +12,6 @@ add_subdirectory(board_control)
 
 # RockBlock code
 add_subdirectory(satellite)
+
+# IMU code
+add_subdirectory(bmx160)
