@@ -133,6 +133,10 @@ BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_
     // }
 
     int8_t write_res = i2c_write_blocking(i2c0, _addr, write_buff, 2, false);
+
+    // free the write buff
+    free(write_buff);
+
     return write_res > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;
 }
 
