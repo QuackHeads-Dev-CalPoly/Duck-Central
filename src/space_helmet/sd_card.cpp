@@ -51,6 +51,7 @@ uint8_t wait_not_busy(uint32_t timeout_millis)
             return res;
         d = millis() - t0;
     } while (d < timeout_millis);
+    printf("Timeout\n");
     return res;
 }
 
@@ -81,8 +82,6 @@ uint8_t card_command(uint8_t cmd, uint32_t arg)
     for( uint8_t i = 0; ((resp = spi_read()) & 0x80) && i != 0xFF; i++)
         ;
 
-    gpio_put(SD_CS_PIN, 1);
-
     return resp;
 }
 
@@ -105,18 +104,10 @@ uint8_t sd_card::init_sd_card()
     for(uint8_t i = 0; i < 10; i++)
         spi_send(0xFF);
 
-    // Reset SD card
-    uint8_t reset_cmd[6] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
-    uint8_t response = 0x00;
-    uint8_t dummy = 0xFF;
-    uint8_t empty = 0x00;
-
-    gpio_put(SD_CS_PIN, 0);
-
     uint8_t resp;
     printf("CMD0\n");
-    while ( (resp = card_command(CMD0, 0)) != R1_IDLE_STATE) 
-        ;
+    while ( (resp = card_command(CMD0, 0)) != R1_IDLE_STATE)
+        printf("hey\n"); 
 
     printf("CMD8\n");
     if( (card_command(CMD8, 0x1AA) & R1_ILLEGAL_COMMAND) )
@@ -134,17 +125,23 @@ uint8_t sd_card::init_sd_card()
         type = 0x01;
     }
 
-    printf("CMD55\n");
-    card_command(CMD55, 0);
+    resp = 0xff;
+    while(resp != R1_READY_STATE)
+    {
+        printf("CMD55\n");
+        card_command(CMD55, 0);
+        printf("ACMD41\n");
+        resp = card_command(ACMD41, 0x40000000);
+    }
 
-    printf("ACMD41\n");
-    while(resp = card_command(ACMD41, 0x40000000) != R1_READY_STATE)
-        ;
-
+    printf("SD type: %d\n", type);
     if(type == 0x01)
     {
         printf("CMD58\n");
-        if( card_command(CMD58, 0) )
+        resp = card_command(CMD58, 0);
+
+        printf("Resp: 0x%02x\n", resp);
+        if( resp )
             printf("SD_CARD_ERROR_CMD58\n");
         if( (spi_read() & 0xC0) == 0xC0 )
             type = 0x02;
@@ -153,5 +150,51 @@ uint8_t sd_card::init_sd_card()
     for (uint8_t i = 0; i < 3; i++)
         spi_read();
 
+    gpio_put(SD_CS_PIN, 1);
+}
+
+uint8_t wait_start_block()
+{
+    uint8_t resp;
+    unsigned int t0 = millis();
+    while((resp = spi_read()) == 0xFF)
+    {
+        unsigned int d = millis() - t0;
+        if( d > SD_READ_TIMEOUT)
+        {    
+            printf("SD_CARD_ERROR_READ_TIMEOUT\n");
+            gpio_put(SD_CS_PIN, 1);
+            return false;
+        }
+    }
+    
+    if( resp != DATA_START_BLOCK )
+    {
+        printf("SD_CARD_ERROR_READ\n");
+        gpio_put(SD_CS_PIN, 1);
+        return false;
+    }
+
+    return true;
+}
+
+uint8_t sd_card::read_block(uint32_t addr, uint8_t* buffer)
+{
+    printf("CMD17");
+    if(card_command(CMD17, addr))
+    {
+        printf("SD_CARD_ERROR_CMD17");
+        return true;
+    }
+
+    if( !wait_start_block() )
+        return false;
+
+    for(uint16_t i = 0; i < 512; i++)
+    {
+        buffer[i] = spi_read();
+    }
+    spi_read();
+    spi_read();
     gpio_put(SD_CS_PIN, 1);
 }
