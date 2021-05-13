@@ -1,13 +1,15 @@
-add_executable(gps_test
-    duck_simple_gps_test.cpp
+add_executable(test_gps
+    test_gps.cpp
 )
 
-target_link_libraries(gps_test
-    PRIVATE
-        gps
-        hardware_uart
-        pico_mem_ops
-        pico_malloc
-        pico_runtime
-        hardware_dma
+# create UF2 files
+pico_add_extra_outputs(test_gps)
+# Enable stdout to USB serial
+pico_enable_stdio_usb(test_gps 1)
+# Disable stdout to UART0
+pico_enable_stdio_uart(test_gps 0)
+
+target_link_libraries(test_gps 
+    PRIVATE 
+        gps 
 )

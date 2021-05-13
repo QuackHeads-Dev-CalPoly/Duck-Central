@@ -3,7 +3,22 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
+#include "hardware/dma.h"
+#include "hardware/irq.h"
 #include "minmea.h"
+#include "pico/sync.h"
+
+// if using the GP_20U7 module
+#define MAX_SENTENCES 6
+
+#define MAX_NMEA_FRAME_SIZE 81
+#define NUM_NMEA_SENTENCES 7
+#define MAX_GPS_SIZE ((NUM_NMEA_SENTENCES) * (MAX_NMEA_FRAME_SIZE))
+
+#define GPS_UART uart0
+#define GPS_BAUD_RATE 9600
+#define GPS_RX_PIN 1
 
 typedef struct {
     struct minmea_sentence_rmc rmc;
@@ -12,97 +27,24 @@ typedef struct {
     bool gga_valid;
 } GPSData;
 
-void setup_gps(void);
-void setup_gps_temp(void);
+class GPS {
+public:
+    GPS();
+    float get_latitude(void);
+    float get_longitude(void);
+    int get_hours(void);
+    int get_minutes(void);
+    int get_seconds(void);
+    long get_time_millis(void);
+    void parse_gps(void);
 
-/**********************************************************
- * BEGIN: GGA definition
- **********************************************************/
-#define NUM_GGA_FIELDS 16
+   private:
+    void init_dma(void);
 
-#define MESSAGE_ID_SIZE 6
-#define UTC_POSITION_SIZE   10
-#define LATITUDE_SIZE       9
-#define LONGITUDE_SIZE      10
-#define STATION_ID_SIZE     4
-#define CHECKSUM_SIZE       3
+    GPSData gps_data;
+    dma_channel_config c;
+};
 
-typedef struct gga {
-    char message_id[MESSAGE_ID_SIZE];
-    char utc_position[UTC_POSITION_SIZE];
-    char latitude[LATITUDE_SIZE];
-    char n_s;
-    char longitude[LONGITUDE_SIZE];
-    char e_w;
-    uint8_t position_fix_indicator;
-    uint8_t satellites_used;
-    float HDOP;
-    float altitude;
-    char altitude_units;
-    float undulation;
-    char undulation_units;
-    uint8_t age;
-    uint8_t station_id;
-    char checksum[CHECKSUM_SIZE];
-} GGA;
-/**********************************************************
- * END: GGA definition
- **********************************************************/
+static void dma_handler();
 
-/**********************************************************
- * BEGIN: GLL definition
- **********************************************************/
-#define NUM_GLL_FIELDS 8
-
-/**********************************************************
- * END: GLL definition
- **********************************************************/
-
-
-/**********************************************************
- * BEGIN: GSA definition
- **********************************************************/
-#define NUM_GSA_FIELDS 19
-
-/**********************************************************
- * END: GSA definition
- **********************************************************/
-
-
-/**********************************************************
- * BEGIN: GSV definition
- **********************************************************/
-#define NUM_GSV_FIELDS 13
-
-/**********************************************************
- * END: GSV definition
- **********************************************************/
-
-
-/**********************************************************
- * BEGIN: RMC definition
- **********************************************************/
-#define NUM_RMC_FIELDS 13
-
-/**********************************************************
- * END: RMC definition
- **********************************************************/
-
-
-/**********************************************************
- * BEGIN: VTG definition
- **********************************************************/
-#define NUM_VTG_FIELDS 13
-
-/**********************************************************
- * END: VTG definition
- **********************************************************/
-#endif    //char buff[(MAX_SENTENCES + 1) * MAX_NMEA_FRAME_SIZE] = {};
-void read_gps_full(void);
-void read_gps_blocking(GPSData* gps_data);
-int get_latitude(GPSData gps_data);
-int get_longitude(GPSData gps_data);
-int get_hours(GPSData gps_data);
-int get_minutes(GPSData gps_data);
-int get_seconds(GPSData gps_data);
-long get_time(GPSData gps_data);
+#endif
