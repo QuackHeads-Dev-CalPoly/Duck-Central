@@ -2,19 +2,21 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
+#define BMP388_ADDRESS 0x76
+
 int main() {
     stdio_init_all();
     sleep_ms(3000);
     printf("Starting\n");
     fflush(stdout);
 
-    BMP bmpsensor = BMP();
+    BMP388 bmpsensor = BMP388(BMP388_ADDRESS);
 
     int i = 0;
     while (i < 50) {
-        bmpsensor.performReading();
-        printf("After reading, pressure is: %lf and Temp is %lf\n", bmpsensor.getPressure(), bmpsensor.getTemperature());
-        printf("Altitude in meters: %lf\n", bmpsensor.getAltitude());
+        bmpsensor.perform_reading();
+        printf("After reading, pressure is: %lf and Temp is %lf\n", bmpsensor.get_pressure(), bmpsensor.get_temperature());
+        printf("Altitude in meters: %lf\n", bmpsensor.get_altitude());
         fflush(stdout);
         sleep_ms(2000);
     }
