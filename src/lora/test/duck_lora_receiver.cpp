@@ -42,7 +42,10 @@ int main() {
 
 void on_receive(LoraPayload payload) {
     gpio_put(LED_PIN, 1);
-    printf("%s, %f, %f\n", payload.payload, payload.SNR, payload.RSSI);
+    for (int i = 0; i < payload.length; i++) {
+        printf("%c", payload.payload[i]);
+    }
+    printf(", %f, %f\n", payload.SNR, payload.RSSI);
     fflush(stdout);
 
     lora->transmit(payload.payload, payload.length);
