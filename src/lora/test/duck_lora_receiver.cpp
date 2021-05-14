@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "log.h"
 #include "lora.h"
 #include "pico/stdlib.h"
-#include "log.h"
+#include "power_control.h"
 
 #define LED_PIN 25
 
@@ -11,25 +12,26 @@ void setup_led(void);
 void on_receive(LoraPayload payload);
 void on_transmit(void);
 
+Lora* lora;
+
 int main() {
     stdio_init_all();
 
     setup_led();
 
-    gpio_init(2);
-    gpio_pull_down(2);      // Pull down the pin to keep off
-    gpio_set_dir(2, true);  // The pin to be output
-    gpio_put(2, 1);         // Enable LoRa
+    PowerControl power_control = PowerControl();
+    power_control.turn_on_lora();
 
     sleep_ms(5000);
 
-    Lora lora;
+    lora = new Lora();
 
     printf("SNR, RSSI\n");
 
-    lora.set_receive_callback(on_receive);
+    lora->set_receive_callback(on_receive);
+    lora->set_transmit_callback(on_transmit);
 
-    lora.startReceive();
+    lora->startReceive();
 
     while (1) {
         tight_loop_contents();
@@ -42,7 +44,16 @@ void on_receive(LoraPayload payload) {
     gpio_put(LED_PIN, 1);
     printf("%s, %f, %f\n", payload.payload, payload.SNR, payload.RSSI);
     fflush(stdout);
+
+    lora->transmit(payload.payload, payload.length);
+
     gpio_put(LED_PIN, 0);
+}
+
+void on_transmit() {
+    printf("repeated succesfully.\n");
+    gpio_put(LED_PIN, 0);
+    lora->startReceive();
 }
 
 void setup_led(void) {
