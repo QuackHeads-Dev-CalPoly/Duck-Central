@@ -19,16 +19,20 @@
 
 #define MESSAGE_ID_LENGTH 4
 
-volatile bool did_pop;
+#define TWO_MINUTES 120000
+#define ONE_SECOND 1000
+
+volatile bool sat_pop;
+volatile bool lora_pop;
+
+bmx160SensorData magnetometer, gyroscope, accelerometer;
 
 void enable_all_modules(PowerControl* power_control);
 void print_art(void);
 void setup_iridium(IridiumSBD* iridium);
 void setup_bmx(BMX160* bmx160);
 void on_transmit(void);
-void create_payload(char* buffer, BMP388 bmp388_external, bmx160SensorData magnetometer,
-                    bmx160SensorData gyroscope, bmx160SensorData accelerometer,
-                    int sequence_num, GPS* gps);
+void create_payload(char* buffer, BMP388* bmp388_external, BMX160* bmx160, int sequence_num, GPS* gps);
 void send_satellite_payload(IridiumSBD* iridium, char* payload, uint8_t payload_length);
 void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length);
 void create_uuid(char msg[4]);
@@ -44,7 +48,8 @@ int main() {
     }
 
     srand(time(NULL));  // Initialization, should only be called once.
-    did_pop = false;
+    sat_pop = false;
+    lora_pop = false;
 
     printf("enabling power...\n");
     fflush(stdout);
@@ -73,7 +78,6 @@ int main() {
     setup_bmx(&bmx160);
     printf("BMX160 initialized successfully.\n");
     fflush(stdout);
-    bmx160SensorData magnetometer, gyroscope, accelerometer;
 
     IridiumSBD iridium = IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
     setup_iridium(&iridium);
@@ -93,22 +97,25 @@ int main() {
 
     int sequence_num = 0;
     while (1) {
-        bmp388_external.perform_reading();
-        bmx160.get_all_data(&magnetometer, &gyroscope, &accelerometer);
-
         char payload[255] = {};
-        create_payload(payload, bmp388_external, magnetometer, gyroscope, accelerometer,
-                       sequence_num, &gps);
+        create_payload(payload, &bmp388_external, &bmx160, sequence_num, &gps);
         uint8_t payload_length = strlen((char*)payload);
         printf("payload length is %d\n", payload_length);
 
         send_satellite_payload(&iridium, payload, payload_length);
 
-        send_lora_payload(lora, (uint8_t*) payload, payload_length);
+        // burst LoRa packets
+        for (int i = 0; i < 3; i++) {
+            send_lora_payload(lora, (uint8_t*)payload, payload_length);
+            sleep_ms(ONE_SECOND);
+        }
+        // un-set the LoRa pop topic 
+        lora_pop = false;
 
+        // increment the sequence number
         sequence_num++;
 
-        sleep_ms(1000);
+        sleep_ms(TWO_MINUTES);
     }
 
     fflush(stdout);
@@ -192,7 +199,7 @@ void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length) {
     buffer.insert(buffer.end(), message_id, message_id + MESSAGE_ID_LENGTH);
 
     // topic
-    buffer.insert(buffer.end(), 0x10);
+    buffer.insert(buffer.end(), lora_pop ? 0x16 : 0x10);
 
     // path offset
     buffer.insert(buffer.end(), 28 + payload_length);
@@ -224,16 +231,16 @@ void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length) {
 /*
 [sequence number, temp (C), pressure (Pa), altitude (m), mag (uT), gyro (g), accel (m/s/s), lat, long]
 */
-void create_payload(char* buffer, BMP388 bmp388_external, bmx160SensorData magnetometer,
-                      bmx160SensorData gyroscope,
-                      bmx160SensorData accelerometer, int sequence_num, GPS* gps) {
+void create_payload(char* buffer, BMP388* bmp388_external, BMX160* bmx160, int sequence_num, GPS* gps) {
+    bmp388_external->perform_reading();
+    bmx160->get_all_data(&magnetometer, &gyroscope, &accelerometer);
 
     sprintf((char*)buffer, "%d,%lf,%lf,%lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f",
-            sequence_num, bmp388_external.get_temperature(), bmp388_external.get_pressure(),
-            bmp388_external.get_altitude(), magnetometer.x, magnetometer.y,
-            magnetometer.z, gyroscope.x, gyroscope.y, gyroscope.z,
-            accelerometer.x, accelerometer.y, accelerometer.z,
-            gps->get_latitude(), gps->get_longitude());
+            sequence_num, bmp388_external->get_temperature(),
+            bmp388_external->get_pressure(), bmp388_external->get_altitude(),
+            magnetometer.x, magnetometer.y, magnetometer.z, gyroscope.x,
+            gyroscope.y, gyroscope.z, accelerometer.x, accelerometer.y,
+            accelerometer.z, gps->get_latitude(), gps->get_longitude());
 
     printf("Message built: [%s]\n", buffer);
 }
@@ -341,7 +348,9 @@ void pop_topic(uint gpio, uint32_t events) {
     gpio_acknowledge_irq(gpio, events);
     gpio_set_irq_enabled(gpio, events, false);
 
+    // let satellite and lora know to send a pop topic
     sat_pop = true;
+    lora_pop = true;
 
     gpio_set_irq_enabled(gpio, events, true);
 }
