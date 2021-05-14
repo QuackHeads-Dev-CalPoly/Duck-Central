@@ -22,6 +22,8 @@
 #define TWO_MINUTES 120000
 #define ONE_SECOND 1000
 
+#define INT_1_PIN 6
+
 volatile bool sat_pop;
 volatile bool lora_pop;
 
@@ -43,6 +45,7 @@ void create_payload(char* buffer, int sequence_num);
 void send_satellite_payload(char* payload, uint8_t payload_length);
 void send_lora_payload(uint8_t* payload, uint8_t payload_length);
 void create_uuid(char msg[4]);
+void pop_topic(uint gpio, uint32_t events);
 
 
 int main() {
@@ -64,32 +67,46 @@ int main() {
     power_control = new PowerControl();
     enable_all_modules();
 
+    sleep_ms(5000);
+
     gps = new GPS();
     printf("GPS initialized successfully.\n");
     fflush(stdout);
+
+    sleep_ms(1000);
 
     lora = new Lora();
     lora->set_transmit_callback(on_transmit);
     printf("LoRa initialized successfully.\n");
     fflush(stdout);
 
+    sleep_ms(1000);
+
     bmp388_external = new BMP388(0x77);
     printf("BMP388 External initialized successfully.\n");
     fflush(stdout);
 
-    bmp388_internal = new BMP388(0x76);
-    printf("BMP388 Internal initialized successfully.\n");
-    fflush(stdout);
+    sleep_ms(1000);
+
+    //bmp388_internal = new BMP388(0x76);
+    //printf("BMP388 Internal initialized successfully.\n");
+    //fflush(stdout);
+
+    sleep_ms(1000);
 
     bmx160 = new BMX160(i2c0, 4000, BMX160_SCLK_PIN, BMX160_SDA_PIN);
     setup_bmx();
     printf("BMX160 initialized successfully.\n");
     fflush(stdout);
 
+    sleep_ms(1000);
+
     iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
     setup_iridium();
     printf("RockBlock initialized successfully.\n");
     fflush(stdout);
+
+    sleep_ms(1000);
 
     printf("===============================\n");
     printf("All modules initialized successfully.\n");
@@ -109,20 +126,23 @@ int main() {
         uint8_t payload_length = strlen((char*)payload);
         printf("payload length is %d\n", payload_length);
 
-        send_satellite_payload(payload, payload_length);
-
         // burst LoRa packets
         for (int i = 0; i < 3; i++) {
+            printf("sending payload over lora...\n");
             send_lora_payload((uint8_t*)payload, payload_length);
             sleep_ms(ONE_SECOND);
         }
-        // un-set the LoRa pop topic 
+        // un-set the LoRa pop topic
         lora_pop = false;
+
+        sleep_ms(1000);
+
+        send_satellite_payload(payload, payload_length);
 
         // increment the sequence number
         sequence_num++;
 
-        sleep_ms(ONE_SECOND);
+        sleep_ms(TWO_MINUTES);
     }
 
     fflush(stdout);
@@ -146,6 +166,15 @@ void create_uuid(char* msg) {
 duck-id/message-id/payload/path/topic/papa-id
 */
 void send_satellite_payload(char* payload, uint8_t payload_length) {
+    int sig_qual;
+    int err = iridium->getSignalQuality(sig_qual);
+    if (err != ISBD_SUCCESS) {
+        printf("getSignalQuality() failed: error %d\n", err);
+        fflush(stdout);
+    }
+
+    printf("RockBlock signal quality is %d.\n", sig_qual);
+
     char message[255] = {};
 
     char* duck_id = "AQUILA01";
@@ -176,7 +205,7 @@ void send_satellite_payload(char* payload, uint8_t payload_length) {
     printf("made message for iridium: [%s]\n", message);
     fflush(stdout);
 
-    int err = iridium->sendSBDText(message);
+    err = iridium->sendSBDText(message);
     if (err != ISBD_SUCCESS) {
         printf("sendSBDText failed: error %d\n", err);
         if (err == ISBD_SENDRECEIVE_TIMEOUT) {
@@ -191,6 +220,8 @@ void send_satellite_payload(char* payload, uint8_t payload_length) {
 
 void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
     std::vector<uint8_t> buffer;
+
+    printf("building lora payload\n");
 
     // duck id
     std::string duck_id("AQUILA01");
@@ -231,6 +262,8 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
 
     uint8_t lora_packet[255];
     std::copy(buffer.begin(), buffer.end(), lora_packet);
+
+    printf("transmitting lora payload\n");
 
     lora->transmit(lora_packet, buffer.size());
 }
@@ -312,6 +345,11 @@ void setup_bmx() {
         fflush(stdout);
         return;
     }
+
+    //gpio_init(INT_1_PIN);
+    //gpio_set_dir(INT_1_PIN, GPIO_IN);
+    //gpio_set_irq_enabled_with_callback(INT_1_PIN, GPIO_IRQ_EDGE_RISE, true, &pop_topic);
+    //bmx160->enable_low_g_interrupt();
 }
 
 void setup_iridium() {
@@ -361,6 +399,8 @@ void pop_topic(uint gpio, uint32_t events) {
     // let satellite and lora know to send a pop topic
     sat_pop = true;
     lora_pop = true;
+
+    printf("balloon has popped\n");
 
     gpio_set_irq_enabled(gpio, events, true);
 }

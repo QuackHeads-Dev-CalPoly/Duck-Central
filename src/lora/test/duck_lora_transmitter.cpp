@@ -4,6 +4,7 @@
 #include "log.h"
 #include "lora.h"
 #include "pico/stdlib.h"
+#include "power_control.h"
 
 #define LED_PIN 25
 
@@ -15,14 +16,22 @@ void on_transmit(void);
 int main() {
     stdio_init_all();
 
+    // wait for user to connect to serial port
+    sleep_ms(2000);
+
     setup_led();
 
-    gpio_init(2);
-    gpio_pull_down(2);      // Pull down the pin to keep off
-    gpio_set_dir(2, GPIO_OUT);  // The pin to be output
-    gpio_put(2, 1);         // Enable LoRa
+    PowerControl power_control = PowerControl();
 
-    // wait for user to connect to serial port
+    power_control.turn_on_gps();
+    printf("gps enabled.\n");
+    
+    power_control.turn_on_lora();
+    printf("lora enabled.\n");
+
+    power_control.turn_on_5v_pwr();
+    printf("5V rail enabled.\n");
+
     sleep_ms(5000);
 
     // NOTE: MUST NOT BE GLOBAL. SPI TO THE LORA MODULE NEEDS TO BE TURNED ON FIRST.

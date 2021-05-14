@@ -32,6 +32,7 @@ pico_enable_stdio_uart(transmitter_test 0)
 target_link_libraries(transmitter_test 
     PRIVATE 
         lora 
+        board_control
         hardware_spi 
         hardware_irq
 )
