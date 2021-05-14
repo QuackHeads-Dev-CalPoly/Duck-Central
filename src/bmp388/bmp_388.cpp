@@ -9,17 +9,15 @@
 #include <math.h>
 #include "pico/stdlib.h"
 
-
-// Hardware address for BMP 388
-static uint8_t _addr = 0x76;
-
 // Constructor: performs all required pre-setup tasks for the Pico and BMP388
-BMP::BMP() {
+BMP388::BMP388(uint8_t addr) {
     int8_t res = 0;
     
+    _bmp388_address = addr;
+
     // set up I2C on the Pico for BMP388
-    i2c_init(i2c0, 400*1000);
-    
+    i2c_init(i2c0, 400 * 1000);
+
     gpio_set_function(PICO_BMP_I2C_SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(PICO_BMP_I2C_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(PICO_BMP_I2C_SDA_PIN);
@@ -47,24 +45,21 @@ BMP::BMP() {
     }
 
     // Configure the optimal settings for payload
-    if ((res = setSensorSettings()) != BMP3_OK) {
+    if ((res = set_sensor_settings()) != BMP3_OK) {
         printf("ERROR: Unable to set the BMP388 sensor settings \n");
         printf("Res is %d\n", res);
         return;
     }
 
     // Set sensor to forced mode to perform reading when queried
-    if (setPowerModeForced() != BMP3_OK) {
+    if (set_power_mode_forced() != BMP3_OK) {
         printf("ERROR: Unable to set the BMP388 power mode\n");
         return;
     }
-
 }
 
-
-
 // Queries the BMP388 sensor and fills structs with relevant data
-int8_t BMP::performReading() {
+int8_t BMP388::perform_reading() {
     int8_t res = 0;
 
     /* Variable used to select the sensor component */
@@ -74,7 +69,7 @@ int8_t BMP::performReading() {
     sensor_comp = BMP3_PRESS | BMP3_TEMP;
 
     // Set the BMP to forced mode before querying for data
-    setPowerModeForced();
+    set_power_mode_forced();
 
     if ((res = bmp3_get_sensor_data(sensor_comp, &sensorData, &bmp388)) != BMP3_OK) {
         printf("ERROR: Unable to get BMP388 sensor data\n");
@@ -82,13 +77,13 @@ int8_t BMP::performReading() {
     }
 
     // Perform Altitude calculation
-    altitude = calcAltitude();
+    altitude = calculate_altitude();
 
     return 0;
 }
 
 // Returns the altitude height in meters as a double
-double BMP::calcAltitude() {
+double BMP388::calculate_altitude() {
     double alt = 0.0;
 
     // Apply international barometric formula
@@ -97,12 +92,12 @@ double BMP::calcAltitude() {
     return alt > 0 ? alt : 0.0;
 }
 
-int8_t BMP::setPowerModeForced() {
+int8_t BMP388::set_power_mode_forced() {
     bmp388.settings.op_mode = BMP3_MODE_FORCED;
     return bmp3_set_op_mode(&bmp388);
 }
 
-int8_t BMP::setSensorSettings() {
+int8_t BMP388::set_sensor_settings() {
     uint16_t settings_sel;
     
     bmp388.settings.press_en = BMP3_ENABLE;
@@ -129,7 +124,7 @@ BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_
     //     printf("Contents of the buff to write at %d is: %02x\n", i, write_data[i]);
     // }
 
-    int8_t write_res = i2c_write_blocking(i2c0, _addr, write_buff, 2, false);
+    int8_t write_res = i2c_write_blocking(i2c0, _bmp388_address, write_buff, 2, false);
 
     // free the allocated memory
     free(write_buff);
@@ -139,9 +134,9 @@ BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_
 
 BMP3_INTF_RET_TYPE bmpRead(uint8_t reg_addr, uint8_t *read_data, uint32_t len, void *intf_ptr) {
     // To read, first write the register address wanting to be read
-    i2c_write_blocking(i2c0, _addr, &reg_addr, sizeof(uint8_t), true);
+    i2c_write_blocking(i2c0, _bmp388_address, &reg_addr, sizeof(uint8_t), true);
 
-    int8_t write_result = i2c_read_blocking(i2c0, _addr, read_data, len, false);
+    int8_t write_result = i2c_read_blocking(i2c0, _bmp388_address, read_data, len, false);
 
     return write_result > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;
 }
