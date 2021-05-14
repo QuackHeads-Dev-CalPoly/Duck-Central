@@ -253,8 +253,6 @@ uint8_t sd_logger::write_block(uint32_t addr, uint8_t* buffer)
 uint8_t sd_logger::start_logger(uint32_t start_blk_addr)
 {
     curr_blk_addr = start_blk_addr;
-
-    memset(active_buffer, 0x00, 512); // Clear out the buffer on init
     buff_offset = 0;
 
     if(!init_sd_card())
@@ -268,13 +266,18 @@ uint8_t sd_logger::start_logger(uint32_t start_blk_addr)
 uint8_t sd_logger::log(uint8_t* buffer, uint16_t len)
 {
     memset(active_buffer, 0x00, 512); // Clear out the buffer
-    memcpy(active_buffer, buffer, len);
     
+    uint32_t timestamp = millis(); // Get timestamp
+    memcpy(active_buffer, (uint8_t*)&timestamp, 4);   // Write in timestamp  
+    memcpy(active_buffer, buffer + 4, len); // Copy in data
+    
+    // Calculate checksum
     uint32_t checksum = 0;
-    for(int i = 0; i < len; i++)
+    for(int i = 0; i < len + 4; i++)
         checksum += active_buffer[i];
 
-    memcpy(active_buffer, (uint8_t*)&checksum, 4);
+    // Copy in checksum
+    memcpy(active_buffer + (len + 4), (uint8_t*)&checksum, 4);
 
     if(!write_block(curr_blk_addr, active_buffer))
     {
