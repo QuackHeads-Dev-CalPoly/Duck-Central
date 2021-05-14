@@ -1,4 +1,3 @@
-
 extern "C"
 {
     #include "hardware/spi.h"
@@ -21,10 +20,11 @@ uint32_t millis()
     absolute_time_t time_stamp = get_absolute_time();
     return to_ms_since_boot( time_stamp );
 }
+
 /* Interface functions for SPI */
 static void spi_send(uint8_t data)
 {
-    printf("Send %02x\n", data);
+    //printf("Send %02x\n", data);
     spi_write_blocking(spi0, &data, 1);
 }
 
@@ -33,7 +33,7 @@ static uint8_t spi_read()
     uint8_t dummy = 0xFF;
     uint8_t response = 0x00;
     spi_write_read_blocking(spi0, &dummy, &response, 1);
-    printf("read resp 0x%02x\n", response);
+    //printf("read resp 0x%02x\n", response);
     return response;
 }
 
@@ -43,7 +43,6 @@ uint8_t wait_not_busy(uint32_t timeout_millis)
     unsigned int d;
     uint8_t dummy = 0xFF;
     uint8_t res = 0x00;
-    uint32_t count = 0;
     do
     {
         spi_write_read_blocking(spi0, &dummy, &res, 1);
@@ -51,8 +50,8 @@ uint8_t wait_not_busy(uint32_t timeout_millis)
             return res;
         d = millis() - t0;
     } while (d < timeout_millis);
-    printf("Timeout\n");
-    return res;
+    //printf("Timeout\n");
+    return false;
 }
 
 uint8_t card_command(uint8_t cmd, uint32_t arg)
@@ -65,7 +64,7 @@ uint8_t card_command(uint8_t cmd, uint32_t arg)
 
     for(int8_t s = 24; s >= 0; s -= 8)
     {
-        printf("send arg\n");
+        //printf("send arg\n");
         spi_send(arg >> s);
     }
 
@@ -107,7 +106,8 @@ uint8_t sd_card::init_sd_card()
     uint8_t resp;
     printf("CMD0\n");
     while ( (resp = card_command(CMD0, 0)) != R1_IDLE_STATE)
-        printf("hey\n"); 
+        ;
+        //printf("hey\n"); 
 
     printf("CMD8\n");
     if( (card_command(CMD8, 0x1AA) & R1_ILLEGAL_COMMAND) )
@@ -140,7 +140,7 @@ uint8_t sd_card::init_sd_card()
         printf("CMD58\n");
         resp = card_command(CMD58, 0);
 
-        printf("Resp: 0x%02x\n", resp);
+        //printf("Resp: 0x%02x\n", resp);
         if( resp )
             printf("SD_CARD_ERROR_CMD58\n");
         if( (spi_read() & 0xC0) == 0xC0 )
@@ -197,4 +197,60 @@ uint8_t sd_card::read_block(uint32_t addr, uint8_t* buffer)
     spi_read();
     spi_read();
     gpio_put(SD_CS_PIN, 1);
+}
+
+uint8_t write_data(uint32_t token, uint8_t* buffer)
+{
+    spi_send(token); // Put start token down on the wire
+    for(uint16_t i = 0; i < 512; i++)
+    {
+        spi_send(buffer[i]);
+    }
+
+    spi_send(0xff); // send dummy crc
+    spi_send(0xff); // send dummy crc
+
+    uint8_t resp = spi_read();
+    if( (resp & DATA_RES_MASK) != DATA_RES_ACCEPTED )
+    {
+        printf("SD_CARD_ERROR_WRITE\n");
+        gpio_put(SD_CS_PIN, 1);
+        return false;
+    }
+
+    return true;
+}
+
+uint8_t sd_card::write_block(uint32_t addr, uint8_t* buffer)
+{
+    if(card_command(CMD24, addr))
+    {
+        printf("SD_CARD_ERROR_CMD24\n");
+        gpio_put(SD_CS_PIN, 1); // Ensure to stop transaction
+        return false;
+    }
+
+    if(!write_data(DATA_START_BLOCK, buffer))
+    {
+        printf("SD_WRITE_DATA_ERROR\n");
+        gpio_put(SD_CS_PIN, 1); // Ensure to stop transaction
+        return false;
+    }
+
+    if(!wait_not_busy(SD_WRITE_TIMEOUT))
+    {
+        printf("SD_CARD_ERROR_WRITE_TIMEOUT\n");
+        gpio_put(SD_CS_PIN, 1); // Ensure to stop transaction
+        return false;
+    }
+
+    //r2 response so ensure that the two bytes are nonzero
+    if( card_command(CMD13, 0) || spi_read() )
+    {
+        printf("SD_CARD_ERROR_WRITE_PROGRAMMING\n");
+        gpio_put(SD_CS_PIN, 1);
+        return false;
+    }
+
+    gpio_put(SD_CS_PIN, 1); // End transaction
 }

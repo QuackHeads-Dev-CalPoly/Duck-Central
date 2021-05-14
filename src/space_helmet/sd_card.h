@@ -23,11 +23,8 @@ class sd_card
 
         // Initializes the SD card and returns the byte response
         uint8_t init_sd_card();
-        uint8_t read_block(uint32_t addr, uint8_t* buffer);
-        uint8_t send_cmd8();
-        uint8_t send_cmd58();
-        uint8_t send_acmd41();
-        uint8_t wait_not_busy(uint32_t);
+        uint8_t read_block(uint32_t, uint8_t*);
+        uint8_t write_block(uint32_t, uint8_t*);
 };
 
 #endif /* */
