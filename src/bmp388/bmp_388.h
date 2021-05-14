@@ -13,32 +13,28 @@
 #define ALTITUDE_REF_PRESS 101325
 #define ALTITUDE_ERROR -1
 
-class BMP {
-    public:
-        struct bmp3_dev bmp388;
-        struct bmp3_data sensorData;
-        double altitude;
-        BMP();
-        
-        double getAltitude() {
-            return altitude;
-        }
+static uint8_t _bmp388_address;
 
-        double getTemperature() {
-            return sensorData.temperature;
-        }
+class BMP388 {
+   public:
+    struct bmp3_dev bmp388;
+    struct bmp3_data sensorData;
+    double altitude;
 
-        double getPressure() {
-            return sensorData.pressure;
-        }
-    
-        int8_t performReading();
+    BMP388(uint8_t addr);
 
-    private:
-        int8_t setSensorSettings();
-        int8_t setPowerModeForced();
-        double calcAltitude();
+    double get_altitude() { return altitude; }
 
+    double get_temperature() { return sensorData.temperature; }
+
+    double get_pressure() { return sensorData.pressure; }
+
+    int8_t perform_reading();
+
+   private:
+    int8_t set_sensor_settings();
+    int8_t set_power_mode_forced();
+    double calculate_altitude();
 };
 
 BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *read_data, uint32_t len, void *intf_ptr);
