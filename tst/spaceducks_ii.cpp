@@ -19,6 +19,7 @@
 
 #define MESSAGE_ID_LENGTH 4
 
+volatile bool did_pop;
 
 void enable_all_modules(PowerControl* power_control);
 void print_art(void);
@@ -43,6 +44,7 @@ int main() {
     }
 
     srand(time(NULL));  // Initialization, should only be called once.
+    did_pop = false;
 
     printf("enabling power...\n");
     fflush(stdout);
@@ -139,7 +141,8 @@ void send_satellite_payload(IridiumSBD* iridium, char* payload, uint8_t payload_
 
     char* path = duck_id;
 
-    uint8_t topic = 0x10;
+    uint8_t topic = sat_pop ? 0x16 : 0x10;
+    sat_pop = false;
 
     int index = 0;
     sprintf(message, "%s/%s/", duck_id, message_id);
@@ -332,6 +335,15 @@ void enable_all_modules(PowerControl* power_control) {
     printf("===============================\n");
     printf("All modules powered successfully.\n");
     printf("===============================\n\n\n");
+}
+
+void pop_topic(uint gpio, uint32_t events) {
+    gpio_acknowledge_irq(gpio, events);
+    gpio_set_irq_enabled(gpio, events, false);
+
+    sat_pop = true;
+
+    gpio_set_irq_enabled(gpio, events, true);
 }
 
 void ISBDConsolePrintCallback(IridiumSBD* device, char c) { printf("%c", c); }
