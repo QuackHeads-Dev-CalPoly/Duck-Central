@@ -8,6 +8,7 @@
 #include "hardware/irq.h"
 #include "minmea.h"
 #include "pico/sync.h"
+#include "board_config.h"
 
 // if using the GP_20U7 module
 #define MAX_SENTENCES 6
@@ -18,7 +19,6 @@
 
 #define GPS_UART uart0
 #define GPS_BAUD_RATE 9600
-#define GPS_RX_PIN 1
 
 typedef struct {
     struct minmea_sentence_rmc rmc;
