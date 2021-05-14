@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <vector>
+
 
 #define SAT_UART_ID uart1
 #define SAT_BAUD_RATE 19200
@@ -100,7 +102,7 @@ int main() {
 
         send_satellite_payload(&iridium, payload, payload_length);
 
-        // send_lora_payload(lora, (uint8_t*) payload, payload_length);
+        send_lora_payload(lora, (uint8_t*) payload, payload_length);
 
         sequence_num++;
 
@@ -171,7 +173,49 @@ void send_satellite_payload(IridiumSBD* iridium, char* payload, uint8_t payload_
 }
 
 void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length) {
-    lora.transmit(payload, payload_length);
+    std::vector<uint8_t> buffer;
+
+    // duck id
+    std::string duck_id("AQUILA01");
+    buffer.insert(buffer.end(), duck_id.begin(), duck_id.end());
+
+    // target device
+    std::string target_device("00000000");
+    buffer.insert(buffer.end(), target_device.begin(), target_device.end());
+
+    // message uuid
+    char message_id[MESSAGE_ID_LENGTH + 1] = {};
+    create_uuid(message_id);
+    buffer.insert(buffer.end(), message_id, message_id + MESSAGE_ID_LENGTH);
+
+    // topic
+    buffer.insert(buffer.end(), 0x10);
+
+    // path offset
+    buffer.insert(buffer.end(), 28 + payload_length);
+
+    // duck type
+    buffer.insert(buffer.end(), 0x00);
+
+    // hop count
+    buffer.insert(buffer.end(), 0x00);
+
+    // CRC
+    buffer.insert(buffer.end(), 0x00);
+    buffer.insert(buffer.end(), 0x11);
+    buffer.insert(buffer.end(), 0x22);
+    buffer.insert(buffer.end(), 0x33);
+
+    // payload
+    buffer.insert(buffer.end(), payload, payload + payload_length);
+
+    // path
+    buffer.insert(buffer.end(), duck_id.begin(), duck_id.end());
+
+    uint8_t lora_packet[255];
+    std::copy(buffer.begin(), buffer.end(), lora_packet);
+
+    lora.transmit(lora_packet, buffer.size());
 }
 
 /*
