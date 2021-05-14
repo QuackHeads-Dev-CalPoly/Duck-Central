@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 
-#define BMP388_ADDRESS 0x76
+#define BMP388_ADDRESS 0x77
 
 int main() {
     stdio_init_all();

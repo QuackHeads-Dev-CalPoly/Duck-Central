@@ -35,6 +35,7 @@ class BMP388 {
     int8_t set_sensor_settings();
     int8_t set_power_mode_forced();
     double calculate_altitude();
+    uint8_t priv_address;
 };
 
 BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *read_data, uint32_t len, void *intf_ptr);

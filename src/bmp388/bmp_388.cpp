@@ -12,7 +12,8 @@
 // Constructor: performs all required pre-setup tasks for the Pico and BMP388
 BMP388::BMP388(uint8_t addr) {
     int8_t res = 0;
-    
+
+    this->priv_address = addr;
     _bmp388_address = addr;
 
     // set up I2C on the Pico for BMP388
@@ -30,8 +31,8 @@ BMP388::BMP388(uint8_t addr) {
     bmp388.write = (bmp3_write_fptr_t)&bmpWrite;
 
     // debug: selftest to verify operation
-    //printf("Selftest result is: %d\n", bmp3_selftest_check(&bmp388));
-    //fflush(stdout);
+    // printf("Selftest result is: %d\n", bmp3_selftest_check(&bmp388));
+    // fflush(stdout);
 
     // Perform soft reset of sensor before initialization
     if (bmp3_soft_reset(&bmp388) != BMP3_OK) {
@@ -61,6 +62,8 @@ BMP388::BMP388(uint8_t addr) {
 // Queries the BMP388 sensor and fills structs with relevant data
 int8_t BMP388::perform_reading() {
     int8_t res = 0;
+
+    _bmp388_address = this->priv_address;
 
     /* Variable used to select the sensor component */
     uint8_t sensor_comp;
@@ -93,11 +96,13 @@ double BMP388::calculate_altitude() {
 }
 
 int8_t BMP388::set_power_mode_forced() {
+    _bmp388_address = this->priv_address;
     bmp388.settings.op_mode = BMP3_MODE_FORCED;
     return bmp3_set_op_mode(&bmp388);
 }
 
 int8_t BMP388::set_sensor_settings() {
+    _bmp388_address = this->priv_address;
     uint16_t settings_sel;
     
     bmp388.settings.press_en = BMP3_ENABLE;
@@ -114,7 +119,8 @@ int8_t BMP388::set_sensor_settings() {
 
 // (Burst) Writes to the BMP at the register address specified via I2C
 BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_t len, void *intf_ptr) {
-    // Combine the reg_addr into one concatenated buffer with the write data for I2C comm.
+    // Combine the reg_addr into one concatenated buffer with the write data for
+    // I2C comm.
     uint8_t *write_buff = (uint8_t *)malloc(sizeof(uint8_t) + sizeof(write_data));
     memcpy(write_buff, &reg_addr, sizeof(uint8_t));
     memcpy(&write_buff[1], write_data, len);
@@ -132,7 +138,7 @@ BMP3_INTF_RET_TYPE bmpWrite(uint8_t reg_addr, const uint8_t *write_data, uint32_
     return write_res > 0 ? BMP3_INTF_RET_SUCCESS : BMP3_E_COMM_FAIL;
 }
 
-BMP3_INTF_RET_TYPE bmpRead(uint8_t reg_addr, uint8_t *read_data, uint32_t len, void *intf_ptr) {
+BMP3_INTF_RET_TYPE bmpRead(uint8_t reg_addr, uint8_t *read_data, uint32_t len, void *intf_ptr) {    
     // To read, first write the register address wanting to be read
     i2c_write_blocking(i2c0, _bmp388_address, &reg_addr, sizeof(uint8_t), true);
 
