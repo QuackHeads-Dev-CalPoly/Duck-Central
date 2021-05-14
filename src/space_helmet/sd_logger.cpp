@@ -6,14 +6,8 @@ extern "C"
     #include <stdio.h>
 }
 
-#include "sd_card.h"
+#include "sd_logger.h"
 #include "sd_def.h"
-
-sd_card::sd_card()
-{
-    // Do nothing for the moment
-    return;
-}
 
 uint32_t millis()
 {

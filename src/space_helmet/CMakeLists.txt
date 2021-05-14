@@ -1,6 +1,6 @@
 # Create a library which includes the source files
 # Any number of sources could be listed here.
-add_library(space_helmet sd_card.cpp)
+add_library(space_helmet sd_logger.cpp)
 
 target_link_libraries(space_helmet
     PUBLIC
