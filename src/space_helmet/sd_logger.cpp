@@ -4,6 +4,7 @@ extern "C"
     #include "hardware/gpio.h"
     #include "pico/time.h"
     #include <stdio.h>
+    #include <string.h>
 }
 
 #include "sd_logger.h"
@@ -27,7 +28,7 @@ static uint8_t spi_read()
     uint8_t dummy = 0xFF;
     uint8_t response = 0x00;
     spi_write_read_blocking(spi0, &dummy, &response, 1);
-    //printf("read resp 0x%02x\n", response);
+    //printf("read resp 0x%02x\n", response); 
     return response;
 }
 
@@ -78,7 +79,7 @@ uint8_t card_command(uint8_t cmd, uint32_t arg)
     return resp;
 }
 
-uint8_t sd_card::init_sd_card()
+uint8_t sd_logger::init_sd_card()
 {
     // Setup sd card
     spi_init(spi0, 250000); // Set the SCK to 250 kHz
@@ -172,7 +173,7 @@ uint8_t wait_start_block()
     return true;
 }
 
-uint8_t sd_card::read_block(uint32_t addr, uint8_t* buffer)
+uint8_t sd_logger::read_block(uint32_t addr, uint8_t* buffer)
 {
     printf("CMD17");
     if(card_command(CMD17, addr))
@@ -215,7 +216,7 @@ uint8_t write_data(uint32_t token, uint8_t* buffer)
     return true;
 }
 
-uint8_t sd_card::write_block(uint32_t addr, uint8_t* buffer)
+uint8_t sd_logger::write_block(uint32_t addr, uint8_t* buffer)
 {
     if(card_command(CMD24, addr))
     {
@@ -247,4 +248,39 @@ uint8_t sd_card::write_block(uint32_t addr, uint8_t* buffer)
     }
 
     gpio_put(SD_CS_PIN, 1); // End transaction
+}
+
+uint8_t sd_logger::start_logger(uint32_t start_blk_addr)
+{
+    curr_blk_addr = start_blk_addr;
+
+    memset(active_buffer, 0x00, 512); // Clear out the buffer on init
+    buff_offset = 0;
+
+    if(!init_sd_card())
+    {
+        printf("Failed to init SD card");
+        return false;
+    }
+    return true;
+}
+
+uint8_t sd_logger::log(uint8_t* buffer, uint16_t len)
+{
+    memset(active_buffer, 0x00, 512); // Clear out the buffer
+    memcpy(active_buffer, buffer, len);
+    
+    uint32_t checksum = 0;
+    for(int i = 0; i < len; i++)
+        checksum += active_buffer[i];
+
+    memcpy(active_buffer, (uint8_t*)&checksum, 4);
+
+    if(!write_block(curr_blk_addr, active_buffer))
+    {
+        printf("Failed to write block");
+        return false;
+    }
+
+    return true;
 }
