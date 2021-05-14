@@ -24,7 +24,7 @@ void setup_bmx(BMX160* bmx160);
 void on_transmit(void);
 void create_payload(char* buffer, BMP bmp388, bmx160SensorData magnetometer,
                     bmx160SensorData gyroscope, bmx160SensorData accelerometer,
-                    int sequence_num, GPS gps);
+                    int sequence_num, GPS* gps);
 void send_satellite_payload(IridiumSBD* iridium, char* payload, uint8_t payload_length);
 void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length);
 void create_uuid(char msg[4]);
@@ -88,7 +88,7 @@ int main() {
 
         char payload[255] = {};
         create_payload(payload, bmp388, magnetometer, gyroscope, accelerometer,
-                       sequence_num, gps);
+                       sequence_num, &gps);
         uint8_t payload_length = strlen((char*)payload);
         printf("payload length is %d\n", payload_length);
 
@@ -126,7 +126,7 @@ void send_satellite_payload(IridiumSBD* iridium, char* payload, uint8_t payload_
 
     char* duck_id = "AQUILA01";
 
-    char message_id[MESSAGE_ID_LENGTH] = {};
+    char message_id[MESSAGE_ID_LENGTH+1] = {};
     create_uuid(message_id);
 
     char* path = duck_id;
@@ -173,14 +173,14 @@ void send_lora_payload(Lora lora, uint8_t* payload, uint8_t payload_length) {
 */
 void create_payload(char* buffer, BMP bmp388, bmx160SensorData magnetometer,
                       bmx160SensorData gyroscope,
-                      bmx160SensorData accelerometer, int sequence_num, GPS gps) {
+                      bmx160SensorData accelerometer, int sequence_num, GPS* gps) {
 
     sprintf((char*)buffer, "%d,%lf,%lf,%lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f",
             sequence_num, bmp388.getTemperature(), bmp388.getPressure(),
             bmp388.getAltitude(), magnetometer.x, magnetometer.y,
             magnetometer.z, gyroscope.x, gyroscope.y, gyroscope.z,
             accelerometer.x, accelerometer.y, accelerometer.z,
-            gps.get_latitude(), gps.get_longitude());
+            gps->get_latitude(), gps->get_longitude());
 
     printf("Message built: [%s]\n", buffer);
 }
