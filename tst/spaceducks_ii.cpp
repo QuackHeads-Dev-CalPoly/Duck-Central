@@ -20,6 +20,7 @@
 #define MESSAGE_ID_LENGTH 4
 
 #define TWO_MINUTES 120000
+#define ONE_MINUTE 60000
 #define FIVE_SECONDS 5000
 #define ONE_SECOND 1000
 
@@ -127,11 +128,15 @@ int main() {
 
         // burst LoRa packets
         for (int i = 0; i < 10; i++) {
+            sequence_num++;
+
             create_payload(payload, sequence_num);
             payload_length = strlen((char*)payload);
             printf("payload length is %d\n", payload_length);
+
             printf("sending payload over lora...\n");
             send_lora_payload((uint8_t*)payload, payload_length);
+
             sleep_ms(FIVE_SECONDS);
         }
         // un-set the LoRa pop topic
@@ -141,10 +146,7 @@ int main() {
 
         send_satellite_payload(payload, payload_length);
 
-        // increment the sequence number
-        sequence_num++;
-
-        sleep_ms(TWO_MINUTES);
+        sleep_ms(FIVE_SECONDS);
     }
 
     fflush(stdout);
