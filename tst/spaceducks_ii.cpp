@@ -20,6 +20,7 @@
 #define MESSAGE_ID_LENGTH 4
 
 #define TWO_MINUTES 120000
+#define FIVE_SECONDS 5000
 #define ONE_SECOND 1000
 
 #define INT_1_PIN 6
@@ -88,9 +89,9 @@ int main() {
 
     sleep_ms(1000);
 
-    //bmp388_internal = new BMP388(0x76);
-    //printf("BMP388 Internal initialized successfully.\n");
-    //fflush(stdout);
+    bmp388_internal = new BMP388(0x76);
+    printf("BMP388 Internal initialized successfully.\n");
+    fflush(stdout);
 
     sleep_ms(1000);
 
@@ -122,15 +123,16 @@ int main() {
     int sequence_num = 0;
     while (1) {
         char payload[255] = {};
-        create_payload(payload, sequence_num);
-        uint8_t payload_length = strlen((char*)payload);
-        printf("payload length is %d\n", payload_length);
+        uint8_t payload_length = 0;
 
         // burst LoRa packets
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
+            create_payload(payload, sequence_num);
+            payload_length = strlen((char*)payload);
+            printf("payload length is %d\n", payload_length);
             printf("sending payload over lora...\n");
             send_lora_payload((uint8_t*)payload, payload_length);
-            sleep_ms(ONE_SECOND);
+            sleep_ms(FIVE_SECONDS);
         }
         // un-set the LoRa pop topic
         lora_pop = false;
@@ -177,7 +179,7 @@ void send_satellite_payload(char* payload, uint8_t payload_length) {
 
     char message[255] = {};
 
-    char* duck_id = "AQUILA01";
+    char* duck_id = "PHOENIX1";
 
     char message_id[MESSAGE_ID_LENGTH+1] = {};
     create_uuid(message_id);
@@ -224,7 +226,7 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
     printf("building lora payload\n");
 
     // duck id
-    std::string duck_id("AQUILA01");
+    std::string duck_id("PHOENIX1");
     buffer.insert(buffer.end(), duck_id.begin(), duck_id.end());
 
     // target device
@@ -269,21 +271,25 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
 }
 
 /*
-[sequence number, temp (C), pressure (Pa), altitude (m), mag (uT), gyro (g), accel (m/s/s), lat, long]
+[sequence number, temp (C), pressure (Pa), altitude (m), mag (uT), gyro (g), accel (m/s/s), lat, long, temp (C), pressure (Pa), altitude (m)]
 */
 void create_payload(char* buffer, int sequence_num) {
     bmx160SensorData magnetometer, gyroscope, accelerometer;
 
     bmp388_external->perform_reading();
+    bmp388_internal->perform_reading();
 
     bmx160->get_all_data(&magnetometer, &gyroscope, &accelerometer);
 
-    sprintf((char*)buffer, "%d,%lf,%lf,%lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f",
+    sprintf((char*)buffer,
+            "%d,%.4lf,%.4lf,%.4lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f,%.4lf,%.4lf,%.4lf",
             sequence_num, bmp388_external->get_temperature(),
             bmp388_external->get_pressure(), bmp388_external->get_altitude(),
             magnetometer.x, magnetometer.y, magnetometer.z, gyroscope.x,
             gyroscope.y, gyroscope.z, accelerometer.x, accelerometer.y,
-            accelerometer.z, gps->get_latitude(), gps->get_longitude());
+            accelerometer.z, gps->get_latitude(), gps->get_longitude(),
+            bmp388_internal->get_temperature(), bmp388_internal->get_pressure(),
+            bmp388_internal->get_altitude());
 
     printf("Message built: [%s]\n", buffer);
 }
