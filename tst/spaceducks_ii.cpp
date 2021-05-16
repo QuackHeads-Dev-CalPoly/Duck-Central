@@ -33,10 +33,10 @@ volatile bool lora_pop;
 PowerControl* power_control;
 GPS* gps;
 Lora* lora;
-//BMP388* bmp388_external;
+BMP388* bmp388_external;
 BMP388* bmp388_internal;
 BMX160* bmx160;
-//IridiumSBD* iridium;
+IridiumSBD* iridium;
 
 
 void enable_all_modules(void);
@@ -90,9 +90,9 @@ int main() {
 
     sleep_ms(1000);
 
-    //bmp388_external = new BMP388(0x77);
-    //printf("BMP388 External initialized successfully.\n");
-    //fflush(stdout);
+    bmp388_external = new BMP388(0x77);
+    printf("BMP388 External initialized successfully.\n");
+    fflush(stdout);
 
     sleep_ms(1000);
 
@@ -109,10 +109,10 @@ int main() {
 
     sleep_ms(1000);
 
-    //iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
-    //setup_iridium();
-    //printf("RockBlock initialized successfully.\n");
-    //fflush(stdout);
+    iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
+    setup_iridium();
+    printf("RockBlock initialized successfully.\n");
+    fflush(stdout);
 
     sleep_ms(1000);
 
@@ -149,11 +149,11 @@ int main() {
         // un-set the LoRa pop topic
         lora_pop = false;
 
-        //sleep_ms(1000);
+        sleep_ms(1000);
 
-        //send_satellite_payload(payload, payload_length);
+        send_satellite_payload(payload, payload_length);
 
-        //sleep_ms(FIVE_SECONDS);
+        sleep_ms(FIVE_SECONDS);
     }
 
     fflush(stdout);
@@ -176,7 +176,7 @@ void create_uuid(char* msg) {
 /*
 duck-id/message-id/payload/path/topic/papa-id
 */
-/*void send_satellite_payload(char* payload, uint8_t payload_length) {
+void send_satellite_payload(char* payload, uint8_t payload_length) {
     int sig_qual;
     int err = iridium->getSignalQuality(sig_qual);
     if (err != ISBD_SUCCESS) {
@@ -188,7 +188,7 @@ duck-id/message-id/payload/path/topic/papa-id
 
     char message[255] = {};
 
-    char* duck_id = "CYGNUS01";
+    char* duck_id = "PHOENIX1";
 
     char message_id[MESSAGE_ID_LENGTH+1] = {};
     create_uuid(message_id);
@@ -227,7 +227,7 @@ duck-id/message-id/payload/path/topic/papa-id
         printf("RockBlock message sent successfully.\n");
         fflush(stdout);
     }
-}*/
+}
 
 void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
     std::vector<uint8_t> buffer;
@@ -235,7 +235,7 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
     printf("building lora payload\n");
 
     // duck id
-    std::string duck_id("CYGNUS01");
+    std::string duck_id("PHOENIX1");
     buffer.insert(buffer.end(), duck_id.begin(), duck_id.end());
 
     // target device
@@ -285,14 +285,15 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
 void create_payload(char* buffer, int sequence_num) {
     bmx160SensorData magnetometer, gyroscope, accelerometer;
 
-    //bmp388_external->perform_reading();
+    bmp388_external->perform_reading();
     bmp388_internal->perform_reading();
 
     bmx160->get_all_data(&magnetometer, &gyroscope, &accelerometer);
 
     sprintf((char*)buffer,
             "%d,%.4lf,%.4lf,%.4lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f,%.4lf,%.4lf,%.4lf",
-            sequence_num, 0, 0, 0,
+            sequence_num, bmp388_external->get_temperature(),
+            bmp388_external->get_pressure(), bmp388_external->get_altitude(),
             magnetometer.x, magnetometer.y, magnetometer.z, gyroscope.x,
             gyroscope.y, gyroscope.z, accelerometer.x, accelerometer.y,
             accelerometer.z, gps->get_latitude(), gps->get_longitude(),
@@ -366,7 +367,7 @@ void setup_bmx() {
     //bmx160->enable_low_g_interrupt();
 }
 
-/*void setup_iridium() {
+void setup_iridium() {
     printf("Beginning RockBlock initiation.\n");
     int err = iridium->begin();
     if (err != ISBD_SUCCESS) {
@@ -389,7 +390,7 @@ void setup_bmx() {
     }
 
     printf("RockBlock signal quality is %d.\n", sig_qual);
-}*/
+}
 
 void enable_all_modules() {
     power_control->turn_on_gps();
