@@ -5,6 +5,7 @@
 #include "IridiumSBD.h"
 #include "power_control.h"
 #include "board_config.h"
+#include "sd_logger.h"
 
 
 #include <stdio.h>
@@ -71,6 +72,11 @@ int main() {
 
     sleep_ms(5000);
 
+    sd_logger sd;
+    sd.init_sd_card();
+    sd.curr_blk_addr = 0;
+    fflush(stdout);
+
     gps = new GPS();
     printf("GPS initialized successfully.\n");
     fflush(stdout);
@@ -103,10 +109,10 @@ int main() {
 
     sleep_ms(1000);
 
-    iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
-    setup_iridium();
-    printf("RockBlock initialized successfully.\n");
-    fflush(stdout);
+    // iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
+    // setup_iridium();
+    // printf("RockBlock initialized successfully.\n");
+    // fflush(stdout);
 
     sleep_ms(1000);
 
@@ -137,6 +143,7 @@ int main() {
             printf("sending payload over lora...\n");
             send_lora_payload((uint8_t*)payload, payload_length);
 
+            sd.log((uint8_t*) payload, payload_length);
             sleep_ms(FIVE_SECONDS);
         }
         // un-set the LoRa pop topic
@@ -144,8 +151,8 @@ int main() {
 
         sleep_ms(1000);
 
-        send_satellite_payload(payload, payload_length);
-
+        //send_satellite_payload(payload, payload_length);
+        
         sleep_ms(FIVE_SECONDS);
     }
 

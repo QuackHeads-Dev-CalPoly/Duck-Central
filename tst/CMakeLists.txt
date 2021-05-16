@@ -11,6 +11,7 @@ target_link_libraries(spaceducks_ii
         satellite
         board_control
         driver
+        sd_logger
 )
 # create UF2 files
 pico_add_extra_outputs(spaceducks_ii)

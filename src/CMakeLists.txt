@@ -18,3 +18,6 @@ add_subdirectory(bmp388)
 
 # BMX160 driver code
 add_subdirectory(bmx160)
+
+# SD Card
+add_subdirectory(sd_logger)

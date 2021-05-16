@@ -32,4 +32,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Finally, add sub directories after configuration is complete
 add_subdirectory(src)
-add_subdirectory(tst)
+add_subdirectory(tst) 
