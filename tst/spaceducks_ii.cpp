@@ -109,10 +109,10 @@ int main() {
 
     sleep_ms(1000);
 
-    // iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
-    // setup_iridium();
-    // printf("RockBlock initialized successfully.\n");
-    // fflush(stdout);
+    iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
+    setup_iridium();
+    printf("RockBlock initialized successfully.\n");
+    fflush(stdout);
 
     sleep_ms(1000);
 
@@ -151,8 +151,8 @@ int main() {
 
         sleep_ms(1000);
 
-        //send_satellite_payload(payload, payload_length);
-        
+        send_satellite_payload(payload, payload_length);
+
         sleep_ms(FIVE_SECONDS);
     }
 
