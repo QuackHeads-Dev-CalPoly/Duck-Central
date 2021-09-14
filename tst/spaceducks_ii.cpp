@@ -90,7 +90,7 @@ int main() {
 
     sleep_ms(1000);
 
-    bmp388_external = new BMP388(0x77);
+    //bmp388_external = new BMP388(0x77);
     printf("BMP388 External initialized successfully.\n");
     fflush(stdout);
 
@@ -109,8 +109,8 @@ int main() {
 
     sleep_ms(1000);
 
-    iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
-    setup_iridium();
+    //iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
+    //setup_iridium();
     printf("RockBlock initialized successfully.\n");
     fflush(stdout);
 
@@ -149,11 +149,11 @@ int main() {
         // un-set the LoRa pop topic
         lora_pop = false;
 
-        sleep_ms(1000);
+        //sleep_ms(1000);
 
-        send_satellite_payload(payload, payload_length);
+        //send_satellite_payload(payload, payload_length);
 
-        sleep_ms(FIVE_SECONDS);
+        //sleep_ms(FIVE_SECONDS);
     }
 
     fflush(stdout);
@@ -188,7 +188,7 @@ void send_satellite_payload(char* payload, uint8_t payload_length) {
 
     char message[255] = {};
 
-    char* duck_id = "PHOENIX1";
+    char* duck_id = "CYGNUS01";
 
     char message_id[MESSAGE_ID_LENGTH+1] = {};
     create_uuid(message_id);
@@ -235,7 +235,7 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
     printf("building lora payload\n");
 
     // duck id
-    std::string duck_id("PHOENIX1");
+    std::string duck_id("CYGNUS01");
     buffer.insert(buffer.end(), duck_id.begin(), duck_id.end());
 
     // target device
@@ -285,15 +285,13 @@ void send_lora_payload(uint8_t* payload, uint8_t payload_length) {
 void create_payload(char* buffer, int sequence_num) {
     bmx160SensorData magnetometer, gyroscope, accelerometer;
 
-    bmp388_external->perform_reading();
     bmp388_internal->perform_reading();
 
     bmx160->get_all_data(&magnetometer, &gyroscope, &accelerometer);
 
     sprintf((char*)buffer,
-            "%d,%.4lf,%.4lf,%.4lf,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f,%.4lf,%.4lf,%.4lf",
-            sequence_num, bmp388_external->get_temperature(),
-            bmp388_external->get_pressure(), bmp388_external->get_altitude(),
+            "%d,%d:%d:%d,%d:%d:%d,%d:%d:%d,%f,%f,%.4lf,%.4lf,%.4lf",
+            sequence_num, 
             magnetometer.x, magnetometer.y, magnetometer.z, gyroscope.x,
             gyroscope.y, gyroscope.z, accelerometer.x, accelerometer.y,
             accelerometer.z, gps->get_latitude(), gps->get_longitude(),
