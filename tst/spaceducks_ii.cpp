@@ -31,6 +31,7 @@ volatile bool sat_pop;
 volatile bool lora_pop;
 
 PowerControl* power_control;
+sd_logger* sd;
 GPS* gps;
 Lora* lora;
 BMP388* bmp388_external;
@@ -70,69 +71,73 @@ int main() {
     power_control = new PowerControl();
     enable_all_modules();
 
+    // when enabling power to all modules at once, there is a spike in inrush currents, 
+    // which may lead to some setup commands being ignored, due to insufficient power
+    // supply to the modules. sleeping here will give the power rails time to stabilize.
+    // note: this may be mitigated by putting bigger caps on the power rails near each
+    // of the modules. relevant as of Quacker board rev 3.
     sleep_ms(5000);
 
-    sd_logger sd;
-    sd.init_sd_card();
-    sd.curr_blk_addr = 0;
-    fflush(stdout);
+    sd = new sd_logger();
+    sd->init_sd_card();
+    sd->curr_blk_addr = 0;
 
     gps = new GPS();
     printf("GPS initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    // sleeps are generally aesthetic, but time is not of the essence here, so we'll let
+    // them be since they provide inrush current protection.
+    sleep_ms(500);
 
     lora = new Lora();
     lora->set_transmit_callback(on_transmit);
     printf("LoRa initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    sleep_ms(500);
 
     bmp388_external = new BMP388(0x77);
     printf("BMP388 External initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    sleep_ms(500);
 
     bmp388_internal = new BMP388(0x76);
     printf("BMP388 Internal initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    sleep_ms(500);
 
     bmx160 = new BMX160(i2c0, 4000, BMX160_SCLK_PIN, BMX160_SDA_PIN);
     setup_bmx();
     printf("BMX160 initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    sleep_ms(500);
 
     iridium = new IridiumSBD(SAT_UART_ID, SAT_BAUD_RATE, ROCKBLOCK_TX, ROCKBLOCK_RX);
     setup_iridium();
     printf("RockBlock initialized successfully.\n");
-    fflush(stdout);
 
-    sleep_ms(1000);
+    sleep_ms(500);
 
     printf("===============================\n");
     printf("All modules initialized successfully.\n");
     printf("===============================\n\n\n");
-    fflush(stdout);
 
     sleep_ms(100);
     printf("SpaceDuck II online.\n\n");
     print_art();
-    fflush(stdout);
     sleep_ms(100);
 
+    // flush before system exit, as typical embedded C requires.
+    fflush(stdout);
+    return 0;
+}
+
+void loop() {
     int sequence_num = 0;
     while (1) {
         char payload[255] = {};
         uint8_t payload_length = 0;
 
-        // burst LoRa packets
+        // burst `i` number of LoRa packets
         for (int i = 0; i < 10; i++) {
             sequence_num++;
 
@@ -143,7 +148,7 @@ int main() {
             printf("sending payload over lora...\n");
             send_lora_payload((uint8_t*)payload, payload_length);
 
-            sd.log((uint8_t*) payload, payload_length);
+            sd->log((uint8_t*)payload, payload_length);
             sleep_ms(FIVE_SECONDS);
         }
         // un-set the LoRa pop topic
@@ -155,9 +160,6 @@ int main() {
 
         sleep_ms(FIVE_SECONDS);
     }
-
-    fflush(stdout);
-    return 0;
 }
 
 void create_uuid(char* msg) {
